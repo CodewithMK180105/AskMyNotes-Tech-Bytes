@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             console.log(`[upload-notes] Inserted file record:`, fileRow?.id || "NULL");
         }
 
-        // ── Step 4: Notify n8n webhook-test ────────────────────
+        // ── Step 4: Notify n8n webhook-test (Asynchronous) ─────
         const n8nPayload = {
             fileName: file.name,
             fileUrl,
@@ -109,48 +109,23 @@ export async function POST(request: NextRequest) {
             imageKitFileId: fileId,
         };
 
-        const n8nResponse = await fetch(N8N_UPLOAD_URL, {
+        // Fire and forget n8n notification
+        fetch(N8N_UPLOAD_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(n8nPayload),
+        }).catch(err => {
+            console.warn("[upload-notes] Background n8n error:", err);
         });
 
-        if (!n8nResponse.ok) {
-            const errorText = await n8nResponse.text().catch(() => "n8n error");
-            // Still return success — ImageKit & Supabase parts succeeded.
-            console.warn("[upload-notes] n8n error:", n8nResponse.status, errorText);
-            return NextResponse.json({
-                success: true,
-                message: "File saved to ImageKit & Supabase. n8n notification failed (non-critical).",
-                fileUrl,
-                subjectId: subjectRow?.id,
-            });
-        }
-
-        // n8n may return JSON or plain text
-        const text = await n8nResponse.text();
-        const contentType = n8nResponse.headers.get("content-type") || "";
-
-        if (contentType.includes("application/json") && text.trim()) {
-            try {
-                const data = JSON.parse(text);
-                return NextResponse.json({
-                    ...data,
-                    fileUrl,
-                    subjectId: subjectRow?.id,
-                    success: true,
-                });
-            } catch (jsonError) {
-                console.warn("[upload-notes] Failed to parse n8n JSON:", text);
-            }
-        }
-
+        // Return immediately after Step 3
         return NextResponse.json({
             success: true,
-            message: text,
+            message: "File uploaded successfully",
             fileUrl,
             subjectId: subjectRow?.id,
         });
+
     } catch (error) {
         console.error("[upload-notes proxy] Unhandled error:", error);
         const message =

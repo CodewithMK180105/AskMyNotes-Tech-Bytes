@@ -290,19 +290,10 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                         )}
 
                         {isUploading && (
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                    <span className="truncate max-w-[70%]">
-                                        Uploading {currentFileName ? `"${currentFileName}"` : `${files.length} files`}...
-                                    </span>
-                                    <span>{uploadProgress}%</span>
-                                </div>
-                                <Progress
-                                    value={uploadProgress}
-                                    className="h-2 bg-secondary flex-1"
-                                />
-                                <p className="text-[10px] text-muted-foreground text-center mt-2">
-                                    Uploading to ImageKit &amp; triggering n8n workflow...
+                            <div className="py-4 flex flex-col items-center justify-center space-y-3">
+                                <div className="h-8 w-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                                <p className="text-sm text-muted-foreground animate-pulse">
+                                    Uploading {currentFileName ? `"${currentFileName}"` : `${files.length} files`}...
                                 </p>
                             </div>
                         )}
@@ -350,7 +341,7 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                         </motion.div>
                         <h3 className="text-xl font-semibold mb-2">Upload Complete!</h3>
                         <p className="text-muted-foreground text-center">
-                            Your notes have been uploaded to ImageKit and sent to the n8n workflow for {subjectName}.
+                            Your notes have been successfully uploaded to the subject "{subjectName}".
                         </p>
                         {uploadErrors.length > 0 && (
                             <p className="text-xs text-amber-500 mt-2 text-center">
