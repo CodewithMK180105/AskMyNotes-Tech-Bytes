@@ -76,10 +76,7 @@ export default function LandingPage() {
           animate="visible"
           className="text-center max-w-4xl mx-auto"
         >
-          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-sm font-medium border border-white/10 mb-8 backdrop-blur-md">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Hackathon Project Alpha
-          </motion.div>
+
 
           <motion.h1
             variants={itemVariants}
