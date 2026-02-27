@@ -131,8 +131,19 @@ export async function generateQuestions(
     sessionId?: string,
     subjectId?: string
 ): Promise<WorkflowMCQResponse> {
+    const prompt = `Please provide an mcq payload and a short qna payload for the subject: ${subject}.
+For the mcq payload, provide 5 MCQs with 1 correct answer and 3 incorrect ones, including citations and a brief explanation as response.
+For the short qna payload, provide 3 question-answer pairs with model answers.
+CRITICAL INSTRUCTIONS FOR EVERY ANSWER:
+1. Citations to the uploaded notes (file name + page/section/chunk reference).
+2. A confidence level (High/Medium/Low).
+3. The top supporting evidence snippets used to form the answer.
+4. Strict "Not Found" Handling.`;
+
     const body: Record<string, string> = {
-        chatInput: `Generate 5 MCQ questions with 4 options each (A, B, C, D) and 3 short answer questions with model answers for the subject: ${subject}. Include citations and confidence levels for each question.`,
+        subject: subject,
+        question: prompt,
+        chatInput: prompt,
     };
     if (sessionId) body.sessionId = sessionId;
     if (subjectId) body.subjectId = subjectId;
@@ -197,8 +208,19 @@ export async function sendChatMessage(
     subjectName: string,
     sessionId?: string
 ): Promise<WorkflowMCQResponse | { rawOutput: string }> {
+    const prompt = `Subject: ${subjectName}. User request: "${message}".
+If asked for mcqs, give as mcq payload (5 mcqs with 1 correct answer and 3 incorrect ones, with citations and brief explanation).
+If asked for question answer, pass as short qna payload (3 question-answer pairs with model answers).
+Every answer must include:
+1. Citations to the uploaded notes (file name + page/section/chunk reference).
+2. A confidence level (High/Medium/Low).
+3. The top supporting evidence snippets used to form the answer.
+4. Strict "Not Found" Handling.`;
+
     const body: Record<string, string> = {
-        chatInput: `Subject: ${subjectName}. ${message}`,
+        subject: subjectName,
+        question: prompt,
+        chatInput: prompt,
     };
     if (sessionId) {
         body.sessionId = sessionId;
