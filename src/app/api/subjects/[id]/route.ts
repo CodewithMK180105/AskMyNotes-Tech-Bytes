@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteSubject } from "@/lib/db";
+import { deleteSubject, getSubjectFiles } from "@/lib/db";
+import imagekit from "@/lib/imagekit";
 
 export async function DELETE(
     request: NextRequest,
@@ -20,6 +21,31 @@ export async function DELETE(
             );
         }
 
+        // ── Step 1: Get all files for this subject ────────────
+        const files = await getSubjectFiles(subjectId);
+
+        // ── Step 2: Delete files from ImageKit ────────────────
+        if (files.length > 0) {
+            const fileIds = files
+                .map(f => f.imagekit_file_id)
+                .filter((id): id is string => !!id);
+
+            if (fileIds.length > 0) {
+                try {
+                    // Node SDK v7 uses bulk delete or individual deletes. 
+                    // To be safe based on previous debugging, we'll delete them
+                    for (const fileId of fileIds) {
+                        await (imagekit as any).files.delete(fileId);
+                    }
+                    console.log(`[DELETE /api/subjects/[id]] Deleted ${fileIds.length} files from ImageKit`);
+                } catch (ikError) {
+                    console.warn(`[DELETE /api/subjects/[id]] ImageKit cleanup warning:`, ikError);
+                }
+            }
+        }
+
+        // ── Step 3: Delete subject from DB ────────────────────
+        // (This should cascade delete rows in subject_files, mcq_questions, etc. if FKs are set to CASCADE)
         const success = await deleteSubject(subjectId, userId);
 
         if (!success) {

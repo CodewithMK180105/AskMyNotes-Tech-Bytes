@@ -36,8 +36,8 @@ export function Navbar() {
         switch (pathname) {
             case "/dashboard":
                 return "My Subjects";
-            case "/dashboard/chat":
-                return "Chat";
+            case "/dashboard/history":
+                return "Your Chats";
             case "/dashboard/study":
                 return "Study Mode";
             default:
@@ -61,7 +61,7 @@ export function Navbar() {
                                 <a href="/dashboard" className="cursor-pointer">Dashboard</a>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                                <a href="/dashboard/chat" className="cursor-pointer">Chat</a>
+                                <a href="/dashboard/history" className="cursor-pointer">Your Chats</a>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                 <a href="/dashboard/study" className="cursor-pointer">Study Mode</a>

@@ -11,10 +11,13 @@ interface StudyTabsProps {
 }
 
 export function StudyTabs({ activeTab, onChange, mcqCount, shortCount }: StudyTabsProps) {
-    const tabs = [
+    const tabs = ([
         { id: "mcq", label: "Multiple Choice", count: mcqCount },
         { id: "short", label: "Short Answers", count: shortCount },
-    ] as const;
+    ] as const).filter(tab => tab.count > 0);
+
+    // If only one tab, no need to show the switcher at all
+    if (tabs.length <= 1) return null;
 
     return (
         <div className="flex space-x-1 bg-secondary/50 p-1 rounded-xl backdrop-blur-md border border-white/5 w-fit">

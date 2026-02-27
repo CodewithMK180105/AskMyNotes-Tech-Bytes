@@ -2,19 +2,7 @@
 // Transform n8n workflow responses → Frontend types
 // ─────────────────────────────────────────────────────────
 
-import type { MCQ, ShortAnswer, Citation } from "./types";
-import type { WorkflowMCQResponse, WorkflowCitation, WorkflowMCQ, WorkflowShortAnswer } from "./api";
-
-/**
- * Convert a single n8n citation to the frontend Citation format.
- */
-function transformCitation(wc: WorkflowCitation): Citation {
-    return {
-        file: wc.fileName || "Unknown",
-        page: parseInt(wc.section?.match(/\d+/)?.[0] || "0", 10),
-        chunk_id: wc.section || "",
-    };
-}
+import type { MCQ, ShortAnswer } from "./types";
 
 /**
  * Normalize confidence level strings from the workflow.
@@ -27,66 +15,58 @@ function normalizeConfidence(level: string): "High" | "Medium" | "Low" {
 }
 
 /**
- * Convert a single workflow MCQ to the frontend MCQ format.
- */
-function transformMCQ(wm: WorkflowMCQ, idx: number): MCQ {
-    const options = Object.entries(wm.options).map(([label, text]) => ({
-        label,
-        text: text as string,
-    }));
-
-    const primaryCitation = wm.citations?.[0];
-    const citationQuotes = wm.citations?.map((c) => c.quote).filter(Boolean) || [];
-
-    return {
-        id: `mcq_live_${idx + 1}`,
-        question: wm.question,
-        options,
-        correct: wm.correctAnswer,
-        explanation: wm.explanation,
-        citation: primaryCitation
-            ? transformCitation(primaryCitation)
-            : { file: "Notes", page: 0, chunk_id: "" },
-        evidence: citationQuotes[0] || wm.explanation,
-        confidence: normalizeConfidence(wm.confidenceLevel),
-    };
-}
-
-/**
- * Convert a single workflow ShortAnswer to the frontend ShortAnswer format.
- */
-function transformShortAnswer(ws: WorkflowShortAnswer, idx: number): ShortAnswer {
-    const primaryCitation = ws.citations?.[0];
-    const evidence =
-        ws.supportingEvidenceSnippets?.[0] || ws.modelAnswer?.slice(0, 200) || "";
-
-    return {
-        id: `sa_live_${idx + 1}`,
-        question: ws.question,
-        model_answer: ws.modelAnswer,
-        citation: primaryCitation
-            ? transformCitation(primaryCitation)
-            : { file: "Notes", page: 0, chunk_id: "" },
-        evidence,
-        confidence: normalizeConfidence(ws.confidenceLevel),
-    };
-}
-
-/**
  * Transform the entire workflow response into arrays of frontend MCQ and ShortAnswer.
  */
-export function transformWorkflowResponse(data: WorkflowMCQResponse): {
+export function transformWorkflowResponse(data: any): {
     mcqs: MCQ[];
     shortAnswers: ShortAnswer[];
     subject: string;
-    metadata: WorkflowMCQResponse["metadata"];
 } {
+    // The backend route (/api/generate-questions) now perfectly normalizes the response
+    // into the exact db schema formats, so we just map them into the display UI types.
+
+    const parsedMcqs: MCQ[] = (data.mcqs || []).map((m: any, idx: number) => {
+        const options = [
+            { label: "A", text: String(m.option_a || "") },
+            { label: "B", text: String(m.option_b || "") },
+            { label: "C", text: String(m.option_c || "") },
+            { label: "D", text: String(m.option_d || "") },
+        ].filter(o => o.text); // Remove empty options if AI hallucinated fewer than 4
+
+        return {
+            id: `mcq_live_${idx + 1}`,
+            question: m.question,
+            options,
+            correct: m.correct_answer || "A", // Ensure uppercase matching if AI hallucinates case
+            explanation: m.explanation,
+            citation: m.citation_file ? {
+                file: m.citation_file,
+                page: parseInt(m.citation_section?.match(/\d+/)?.[0] || "0", 10),
+                chunk_id: m.citation_section || "",
+            } : { file: "Notes", page: 0, chunk_id: "" },
+            evidence: m.explanation || "No explicit evidence provided.",
+            confidence: normalizeConfidence(m.confidence),
+        };
+    });
+
+    const parsedShortAnswers: ShortAnswer[] = (data.shortAnswers || []).map((s: any, idx: number) => {
+        return {
+            id: `sa_live_${idx + 1}`,
+            question: s.question,
+            model_answer: s.model_answer,
+            citation: s.citation_file ? {
+                file: s.citation_file,
+                page: parseInt(s.citation_section?.match(/\d+/)?.[0] || "0", 10),
+                chunk_id: s.citation_section || "",
+            } : { file: "Notes", page: 0, chunk_id: "" },
+            evidence: s.model_answer?.slice(0, 200) || "No explicit evidence provided.",
+            confidence: normalizeConfidence(s.confidence),
+        };
+    });
+
     return {
-        mcqs: (data.mcqs || []).map((m, i) => transformMCQ(m, i)),
-        shortAnswers: (data.shortAnswerQuestions || []).map((s, i) =>
-            transformShortAnswer(s, i)
-        ),
+        mcqs: parsedMcqs,
+        shortAnswers: parsedShortAnswers,
         subject: data.subject || "Unknown Subject",
-        metadata: data.metadata,
     };
 }

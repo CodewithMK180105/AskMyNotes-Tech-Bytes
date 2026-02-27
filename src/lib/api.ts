@@ -128,22 +128,35 @@ export interface WorkflowMCQResponse {
 // The agent reads `chatInput` from the body to drive the conversation.
 export async function generateQuestions(
     subject: string,
+    mode: "mcq" | "short",
     sessionId?: string,
     subjectId?: string
 ): Promise<WorkflowMCQResponse> {
-    const prompt = `Please provide an mcq payload and a short qna payload for the subject: ${subject}.
-For the mcq payload, provide 5 MCQs with 1 correct answer and 3 incorrect ones, including citations and a brief explanation as response.
-For the short qna payload, provide 3 question-answer pairs with model answers.
+    let prompt = "";
+
+    if (mode === "mcq") {
+        prompt = `Please provide an mcq payload for the subject: ${subject}. 
+Provide 5 MCQs with 1 correct answer and 3 incorrect ones, including citations and a brief explanation as response.
 CRITICAL INSTRUCTIONS FOR EVERY ANSWER:
 1. Citations to the uploaded notes (file name + page/section/chunk reference).
 2. A confidence level (High/Medium/Low).
 3. The top supporting evidence snippets used to form the answer.
 4. Strict "Not Found" Handling.`;
+    } else {
+        prompt = `Please provide a short qna payload for the subject: ${subject}.
+Provide 3 question-answer pairs with model answers.
+CRITICAL INSTRUCTIONS FOR EVERY ANSWER:
+1. Citations to the uploaded notes (file name + page/section/chunk reference).
+2. A confidence level (High/Medium/Low).
+3. The top supporting evidence snippets used to form the answer.
+4. Strict "Not Found" Handling.`;
+    }
 
     const body: Record<string, string> = {
         subject: subject,
         question: prompt,
         chatInput: prompt,
+        mode: mode, // Added mode to help n8n understand the context
     };
     if (sessionId) body.sessionId = sessionId;
     if (subjectId) body.subjectId = subjectId;
@@ -163,109 +176,6 @@ CRITICAL INSTRUCTIONS FOR EVERY ANSWER:
     }
 
     const data = await response.json();
-
-    // The n8n agent returns { output: "<JSON string>" } via Respond to Webhook
-    // We need to parse the nested JSON if it's wrapped in `output`
-    if (typeof data.output === "string") {
-        try {
-            return JSON.parse(data.output) as WorkflowMCQResponse;
-        } catch {
-            // If the output string isn't valid JSON, throw with context
-            throw new Error("AI response was not valid JSON. Please try again.");
-        }
-    }
-
-    // If the response is already structured (direct JSON passthrough)
-    if (data.mcqs && data.shortAnswerQuestions) {
-        return data as WorkflowMCQResponse;
-    }
-
-    // If wrapped in an array (n8n sometimes wraps in array)
-    if (Array.isArray(data) && data.length > 0) {
-        const first = data[0];
-        if (typeof first.output === "string") {
-            try {
-                return JSON.parse(first.output) as WorkflowMCQResponse;
-            } catch {
-                throw new Error("AI response was not valid JSON. Please try again.");
-            }
-        }
-        if (first.mcqs && first.shortAnswerQuestions) {
-            return first as WorkflowMCQResponse;
-        }
-    }
-
-    // Last resort — return data as-is hoping it matches
-    return data as WorkflowMCQResponse;
+    return data as any;
 }
 
-/**
- * Send a freeform chat message to the MCQ agent (reusing the same webhook).
- * Useful for the Chat window where users can ask arbitrary questions.
- */
-export async function sendChatMessage(
-    message: string,
-    subjectName: string,
-    sessionId?: string
-): Promise<WorkflowMCQResponse | { rawOutput: string }> {
-    const prompt = `Subject: ${subjectName}. User request: "${message}".
-If asked for mcqs, give as mcq payload (5 mcqs with 1 correct answer and 3 incorrect ones, with citations and brief explanation).
-If asked for question answer, pass as short qna payload (3 question-answer pairs with model answers).
-Every answer must include:
-1. Citations to the uploaded notes (file name + page/section/chunk reference).
-2. A confidence level (High/Medium/Low).
-3. The top supporting evidence snippets used to form the answer.
-4. Strict "Not Found" Handling.`;
-
-    const body: Record<string, string> = {
-        subject: subjectName,
-        question: prompt,
-        chatInput: prompt,
-    };
-    if (sessionId) {
-        body.sessionId = sessionId;
-    }
-
-    const response = await fetch(
-        `/api/generate-questions`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-        }
-    );
-
-    if (!response.ok) {
-        const errorText = await response.text().catch(() => "Request failed");
-        throw new Error(`Chat request failed (${response.status}): ${errorText}`);
-    }
-
-    const data = await response.json();
-
-    // Try to parse structured output
-    if (typeof data.output === "string") {
-        try {
-            return JSON.parse(data.output) as WorkflowMCQResponse;
-        } catch {
-            // If it's not valid JSON, it's a freeform text response
-            return { rawOutput: data.output };
-        }
-    }
-
-    if (Array.isArray(data) && data.length > 0) {
-        const first = data[0];
-        if (typeof first.output === "string") {
-            try {
-                return JSON.parse(first.output) as WorkflowMCQResponse;
-            } catch {
-                return { rawOutput: first.output };
-            }
-        }
-    }
-
-    if (data.mcqs && data.shortAnswerQuestions) {
-        return data as WorkflowMCQResponse;
-    }
-
-    return { rawOutput: JSON.stringify(data) };
-}

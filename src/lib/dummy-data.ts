@@ -1,4 +1,4 @@
-import { User, Subject, ChatMessage, MCQ, ShortAnswer } from "./types";
+import { User, Subject, MCQ, ShortAnswer } from "./types";
 
 export const dummyUser: User = {
     id: "usr_001",
@@ -43,63 +43,6 @@ export const dummySubjects: Subject[] = [
     }
 ];
 
-export const dummyChatMessages: ChatMessage[] = [
-    {
-        id: "msg_001",
-        role: "user",
-        content: "What is normalization in DBMS? Explain the different normal forms.",
-        timestamp: "2026-02-25T10:30:00Z"
-    },
-    {
-        id: "msg_002",
-        role: "assistant",
-        content: "**Normalization** is the process of organizing data in a database to reduce redundancy and improve data integrity.\n\n### Normal Forms:\n\n1. **First Normal Form (1NF):** A relation is in 1NF if all attributes contain only atomic (indivisible) values and each record is unique.\n\n2. **Second Normal Form (2NF):** A relation is in 2NF if it is in 1NF and every non-key attribute is fully functionally dependent on the entire primary key (no partial dependencies).\n\n3. **Third Normal Form (3NF):** A relation is in 3NF if it is in 2NF and no non-key attribute is transitively dependent on the primary key.\n\n4. **Boyce-Codd Normal Form (BCNF):** A stricter version of 3NF where every determinant must be a candidate key.\n\nNormalization helps eliminate insertion, deletion, and update anomalies.",
-        confidence: "High",
-        citations: [
-            { file: "dbms_notes_unit1.pdf", page: 12, chunk_id: "c_001" },
-            { file: "normalization_guide.pdf", page: 3, chunk_id: "c_015" }
-        ],
-        evidence: [
-            "Normalization is the systematic approach of decomposing tables to eliminate data redundancy and undesirable characteristics like Insertion, Update and Deletion anomalies. — dbms_notes_unit1.pdf, Page 12",
-            "A relation is in BCNF if and only if every determinant is a candidate key. BCNF is a stronger form of 3NF that handles certain anomalies not addressed by 3NF. — normalization_guide.pdf, Page 3",
-            "1NF requires that each column contains atomic values, 2NF removes partial dependencies, and 3NF removes transitive dependencies. — dbms_notes_unit1.pdf, Page 14"
-        ],
-        timestamp: "2026-02-25T10:30:05Z"
-    },
-    {
-        id: "msg_003",
-        role: "user",
-        content: "What is the difference between clustered and non-clustered index?",
-        timestamp: "2026-02-25T10:32:00Z"
-    },
-    {
-        id: "msg_004",
-        role: "assistant",
-        content: "### Clustered Index vs Non-Clustered Index\n\n| Feature | Clustered Index | Non-Clustered Index |\n|---------|----------------|--------------------|\n| **Data Order** | Physically reorders table data | Does not change physical order |\n| **Count** | Only 1 per table | Multiple per table |\n| **Speed** | Faster for range queries | Faster for specific lookups |\n| **Storage** | No extra storage needed | Requires additional storage |\n| **Leaf Nodes** | Contain actual data rows | Contain pointers to data rows |\n\nA **clustered index** defines the physical order in which data is stored in the table. A **non-clustered index** creates a separate structure with pointers back to the original data rows.",
-        confidence: "High",
-        citations: [
-            { file: "dbms_notes_unit1.pdf", page: 28, chunk_id: "c_042" }
-        ],
-        evidence: [
-            "A clustered index determines the physical order of data in a table. There can be only one clustered index per table because the data rows themselves can only be sorted in one order. — dbms_notes_unit1.pdf, Page 28"
-        ],
-        timestamp: "2026-02-25T10:32:04Z"
-    },
-    {
-        id: "msg_005",
-        role: "user",
-        content: "Explain the CAP theorem.",
-        timestamp: "2026-02-25T10:35:00Z"
-    },
-    {
-        id: "msg_006",
-        role: "assistant",
-        content: null,
-        is_not_found: true,
-        not_found_message: "Not found in your notes for Database Management Systems",
-        timestamp: "2026-02-25T10:35:02Z"
-    }
-];
 
 export const dummyMCQs: MCQ[] = [
     {

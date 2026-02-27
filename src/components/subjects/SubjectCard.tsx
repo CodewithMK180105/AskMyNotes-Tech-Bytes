@@ -22,7 +22,7 @@ interface SubjectCardProps {
 export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const { deleteSubject } = useSubjects();
+    const { deleteSubject, deleteFileFromSubject } = useSubjects();
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -65,27 +65,20 @@ export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
                         </p>
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2">
-                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 rounded-xl">
-                            <DropdownMenuItem
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="text-destructive focus:text-destructive cursor-pointer gap-2 rounded-lg"
-                            >
-                                {isDeleting ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="h-4 w-4" />
-                                )}
-                                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="h-8 w-8 -mr-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        title="Delete Subject"
+                    >
+                        {isDeleting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Trash2 className="h-4 w-4" />
+                        )}
+                    </Button>
                 </div>
 
                 <div className="mt-auto space-y-3">
@@ -106,7 +99,7 @@ export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
                             >
                                 <div className="flex items-center gap-2">
                                     <FileText className="h-4 w-4" />
-                                    <span>View Files</span>
+                                    <span>View Files ({subject.files.length})</span>
                                 </div>
                                 <ChevronDown
                                     className={cn(
@@ -144,9 +137,16 @@ export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-6 w-6 opacity-0 group-hover/file:opacity-100 transition-opacity"
+                                                        className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                                        title="Delete File"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (window.confirm(`Are you sure you want to delete "${file.name}"?`)) {
+                                                                deleteFileFromSubject(subject.id, file.id);
+                                                            }
+                                                        }}
                                                     >
-                                                        <Trash2 className="h-3 w-3 text-destructive" />
+                                                        <Trash2 className="h-3 w-3" />
                                                     </Button>
                                                 </div>
                                             ))}

@@ -28,17 +28,6 @@ export interface Citation {
     chunk_id: string;
 }
 
-export interface ChatMessage {
-    id: string;
-    role: "user" | "assistant";
-    content: string | null;
-    timestamp: string;
-    confidence?: "High" | "Medium" | "Low";
-    citations?: Citation[];
-    evidence?: string[];
-    is_not_found?: boolean;
-    not_found_message?: string;
-}
 
 export interface MCQOption {
     label: string;

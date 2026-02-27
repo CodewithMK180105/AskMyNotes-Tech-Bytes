@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CitationBadge } from "@/components/chat/CitationBadge";
-import { ConfidenceBadge } from "@/components/chat/ConfidenceBadge";
+import { CitationBadge } from "@/components/shared/CitationBadge";
+import { ConfidenceBadge } from "@/components/shared/ConfidenceBadge";
 import { cn } from "@/lib/utils";
 
 interface ShortAnswerCardProps {

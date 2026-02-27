@@ -184,6 +184,24 @@ export async function getSubjectFiles(subjectId: string): Promise<DBSubjectFile[
     return (data || []) as DBSubjectFile[];
 }
 
+/**
+ * Delete a specific file record.
+ */
+export async function deleteSubjectFile(fileId: string): Promise<DBSubjectFile | null> {
+    const { data, error } = await supabaseAdmin
+        .from("subject_files")
+        .delete()
+        .eq("id", fileId)
+        .select()
+        .maybeSingle();
+
+    if (error) {
+        console.error("[db] deleteSubjectFile error:", error.message);
+        return null;
+    }
+    return data as DBSubjectFile;
+}
+
 
 // ── MCQ Questions ─────────────────────────────────────────
 

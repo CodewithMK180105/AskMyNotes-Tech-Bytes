@@ -18,6 +18,7 @@ interface SubjectsContextValue {
     activeSubjectId: string | null;
     setActiveSubjectId: (id: string | null) => void;
     deleteSubject: (subjectId: string) => Promise<boolean>;
+    deleteFileFromSubject: (subjectId: string, fileId: string) => Promise<boolean>;
 }
 
 const SubjectsContext = createContext<SubjectsContextValue | null>(null);
@@ -119,9 +120,39 @@ export function SubjectsProvider({ children }: { children: React.ReactNode }) {
         return false;
     }, [user, activeSubjectId]);
 
+    const deleteFileFromSubject = useCallback(async (subjectId: string, fileId: string) => {
+        try {
+            const res = await fetch(`/api/subjects/files/${fileId}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSubjects((prev) =>
+                    prev.map((sub) =>
+                        sub.id === subjectId
+                            ? { ...sub, files: sub.files.filter((f) => f.id !== fileId) }
+                            : sub
+                    )
+                );
+                return true;
+            }
+        } catch (err) {
+            console.error("[SubjectsProvider] Failed to delete file", err);
+        }
+        return false;
+    }, []);
+
     return (
         <SubjectsContext.Provider
-            value={{ subjects, addSubject, addFileToSubject, activeSubjectId, setActiveSubjectId, deleteSubject }}
+            value={{
+                subjects,
+                addSubject,
+                addFileToSubject,
+                activeSubjectId,
+                setActiveSubjectId,
+                deleteSubject,
+                deleteFileFromSubject
+            }}
         >
             {children}
         </SubjectsContext.Provider>

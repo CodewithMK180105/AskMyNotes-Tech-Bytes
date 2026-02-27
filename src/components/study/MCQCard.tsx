@@ -5,8 +5,8 @@ import { MCQ } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CitationBadge } from "@/components/chat/CitationBadge";
-import { ConfidenceBadge } from "@/components/chat/ConfidenceBadge";
+import { CitationBadge } from "@/components/shared/CitationBadge";
+import { ConfidenceBadge } from "@/components/shared/ConfidenceBadge";
 
 interface MCQCardProps {
     mcq: MCQ;

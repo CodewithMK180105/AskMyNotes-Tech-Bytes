@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSubjects } from "@/components/providers/SubjectsProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -35,10 +35,15 @@ export function Sidebar() {
         .toUpperCase()
         .slice(0, 2);
 
+
     const links = [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
-        { href: "/dashboard/study", label: "Study Mode", icon: GraduationCap },
+        { href: "/dashboard/history", label: "Your Chats", icon: MessageSquare },
+        {
+            href: "/dashboard/study",
+            label: "Study Mode",
+            icon: GraduationCap,
+        },
     ];
 
     return (
@@ -75,29 +80,34 @@ export function Sidebar() {
                 {/* Navigation */}
                 <div className="px-3 space-y-1">
                     {links.map((link) => {
-                        const isActive = pathname === link.href;
+                        const isActive = pathname.startsWith(link.href);
+                        const isStudyMode = link.label === "Study Mode";
+
                         return (
-                            <Tooltip key={link.href} delayDuration={0}>
-                                <TooltipTrigger asChild>
-                                    <Link
-                                        href={link.href}
-                                        className={cn(
-                                            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
-                                            isActive
-                                                ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-primary font-medium"
-                                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                                        )}
-                                    >
-                                        <link.icon
-                                            className={cn("h-5 w-5 shrink-0", isActive && "text-primary")}
-                                        />
-                                        {!isCollapsed && <span>{link.label}</span>}
-                                    </Link>
-                                </TooltipTrigger>
-                                {isCollapsed && (
-                                    <TooltipContent side="right">{link.label}</TooltipContent>
-                                )}
-                            </Tooltip>
+                            <div key={link.href} className="space-y-1">
+                                <Tooltip delayDuration={0}>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            href={link.href}
+                                            className={cn(
+                                                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
+                                                isActive
+                                                    ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-primary font-medium"
+                                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                            )}
+                                        >
+                                            <link.icon
+                                                className={cn("h-5 w-5 shrink-0", isActive && "text-primary")}
+                                            />
+                                            {!isCollapsed && <span>{link.label}</span>}
+                                        </Link>
+                                    </TooltipTrigger>
+                                    {isCollapsed && (
+                                        <TooltipContent side="right">{link.label}</TooltipContent>
+                                    )}
+                                </Tooltip>
+
+                            </div>
                         );
                     })}
                 </div>

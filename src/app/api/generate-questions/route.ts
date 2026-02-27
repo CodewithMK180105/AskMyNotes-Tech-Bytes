@@ -29,18 +29,28 @@ function parseN8nResponse(data: unknown): {
         parsed = data[0];
     }
 
+    console.log("[generate-questions] Raw n8n data type:", typeof data, "isArray:", Array.isArray(data));
+    console.log("[generate-questions] Parsed keys:", parsed && typeof parsed === "object" ? Object.keys(parsed) : "none");
+
     if (parsed && typeof parsed === "object" && "output" in (parsed as object)) {
-        const outputStr = String((parsed as { output: string; }).output);
-        try {
-            // Remove markdown format if AI hallucinated it
-            const cleanStr = outputStr
-                .replace(/^```(?:json)?\s*/i, "")
-                .replace(/\s*```$/i, "")
-                .trim();
-            parsed = JSON.parse(cleanStr);
-        } catch (e) {
-            console.error("[generate-questions] Failed to parse n8n JSON:", outputStr);
-            parsed = { rawText: outputStr };
+        const output = (parsed as { output: any }).output;
+
+        if (typeof output === "string") {
+            try {
+                // Remove markdown format if AI hallucinated it
+                const cleanStr = output
+                    .replace(/^```(?:json)?\s*/i, "")
+                    .replace(/\s*```$/i, "")
+                    .trim();
+                parsed = JSON.parse(cleanStr);
+                console.log("[generate-questions] Extracted from 'output' string. New keys:", Object.keys(parsed as object));
+            } catch (e) {
+                console.error("[generate-questions] Failed to parse n8n JSON from output string:", output);
+                parsed = { rawText: output };
+            }
+        } else if (output && typeof output === "object") {
+            parsed = output;
+            console.log("[generate-questions] Extracted from 'output' object. New keys:", Object.keys(parsed as object));
         }
     }
 
@@ -52,9 +62,23 @@ function parseN8nResponse(data: unknown): {
 }
 
 function extractMCQs(data: unknown) {
-    if (!data || typeof data !== "object") return [];
-    const d = data as Record<string, unknown>;
-    const mcqs = (d.mcqs as unknown[]) || [];
+    if (!data) return [];
+
+    let mcqs: unknown[] = [];
+    if (Array.isArray(data)) {
+        mcqs = data;
+    } else if (typeof data === "object" && data !== null) {
+        const d = data as Record<string, unknown>;
+        // Try various keys the AI might use
+        const possibleKeys = ["mcqs", "mcq_payload", "mcqPayload", "questions", "mcq_questions"];
+        for (const key of possibleKeys) {
+            if (Array.isArray(d[key])) {
+                mcqs = d[key] as unknown[];
+                break;
+            }
+        }
+    }
+
     return mcqs.map((m: unknown) => {
         const mcq = m as Record<string, unknown>;
         const options = (mcq.options as Record<string, string>) || {};
@@ -62,35 +86,51 @@ function extractMCQs(data: unknown) {
         const firstCit = citations[0] || {};
         return {
             question: String(mcq.question || ""),
-            option_a: options.A || "",
-            option_b: options.B || "",
-            option_c: options.C || "",
-            option_d: options.D || "",
-            correct_answer: String(mcq.correctAnswer || mcq.correct_answer || "A"),
+            option_a: String(options.A || mcq.option_a || ""),
+            option_b: String(options.B || mcq.option_b || ""),
+            option_c: String(options.C || mcq.option_c || ""),
+            option_d: String(options.D || mcq.option_d || ""),
+            correct_answer: String(mcq.correctAnswer || mcq.correct_answer || mcq.answer || "A"),
             explanation: String(mcq.explanation || ""),
             confidence: String(mcq.confidenceLevel || mcq.confidence || "Medium"),
             citation_file: firstCit.fileName || firstCit.file || null,
             citation_section: firstCit.section || firstCit.chunk_id || null,
         };
-    });
+    }).filter(m => m.question); // Only return valid questions
 }
 
 function extractSAQs(data: unknown) {
-    if (!data || typeof data !== "object") return [];
-    const d = data as Record<string, unknown>;
-    const saqs = (d.shortAnswerQuestions as unknown[]) || [];
+    if (!data) return [];
+
+    let saqs: unknown[] = [];
+    if (Array.isArray(data)) {
+        // If it's an array, it might be the SAQs directly if they have 'modelAnswer'
+        if (data.length > 0 && (data[0] as any).modelAnswer) {
+            saqs = data;
+        }
+    } else if (typeof data === "object" && data !== null) {
+        const d = data as Record<string, unknown>;
+        const possibleKeys = ["shortAnswerQuestions", "short_answer_questions", "shortAnswers", "qna_payload", "qnaPayload", "short_qna"];
+        for (const key of possibleKeys) {
+            if (Array.isArray(d[key])) {
+                saqs = d[key] as unknown[];
+                break;
+            }
+        }
+    }
+
     return saqs.map((s: unknown) => {
         const saq = s as Record<string, unknown>;
         const citations = (saq.citations as Array<Record<string, string>>) || [];
         const firstCit = citations[0] || {};
         return {
             question: String(saq.question || ""),
-            model_answer: String(saq.modelAnswer || saq.model_answer || ""),
+            model_answer: String(saq.modelAnswer || saq.model_answer || saq.answer || ""),
             confidence: String(saq.confidenceLevel || saq.confidence || "Medium"),
             citation_file: firstCit.fileName || firstCit.file || null,
             citation_section: firstCit.section || firstCit.chunk_id || null,
         };
-    });
+    }).filter(s => s.question);
 }
 
 export async function POST(request: NextRequest) {
@@ -148,11 +188,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // ── Step 4: Return parsed data to frontend ─────────────
-        // Return the raw n8n data as-is so frontend transform.ts works correctly
-        // Also attach supabase-parsed counts for debugging
+        // ── Step 4: Return normalized data to frontend ─────────────
         return NextResponse.json({
-            ...((typeof raw === "object" && raw !== null) ? raw : { rawOutput: String(raw) }),
+            subject: (raw as any)?.subject || subjectId || "Subject",
+            mcqs: mcqs,
+            shortAnswers: shortAnswers,
             _db: {
                 subjectId: subjectId || null,
                 mcqsSaved: mcqs.length,
