@@ -13,9 +13,11 @@ interface UploadZoneProps {
     isOpen: boolean;
     onClose: () => void;
     subjectName: string;
+    subjectId: string;
+    existingFileCount: number;
 }
 
-export function UploadZone({ isOpen, onClose, subjectName }: UploadZoneProps) {
+export function UploadZone({ isOpen, onClose, subjectName, subjectId, existingFileCount }: UploadZoneProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);

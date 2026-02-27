@@ -96,11 +96,11 @@ export default function DashboardPage() {
                     // 👇 Add these 2 missing props 👇
                     subjectId={activeSubjectId || ""}
                     existingFileCount={subjects.find((s) => s.id === activeSubjectId)?.files?.length || 0}
-                    // 👆 ---------------------- 👆
                     subjectName={
                         subjects.find((s) => s.id === activeSubjectId)?.name || "Unknown"
                     }
                 />
+            </div>
         </PageTransition>
     );
 }
