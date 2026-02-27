@@ -93,17 +93,14 @@ export default function DashboardPage() {
                 <UploadZone
                     isOpen={isUploadOpen}
                     onClose={() => setIsUploadOpen(false)}
+                    // 👇 Add these 2 missing props 👇
+                    subjectId={activeSubjectId || ""}
+                    existingFileCount={subjects.find((s) => s.id === activeSubjectId)?.files?.length || 0}
+                    // 👆 ---------------------- 👆
                     subjectName={
                         subjects.find((s) => s.id === activeSubjectId)?.name || "Unknown"
                     }
                 />
-
-                <AddSubjectModal
-                    isOpen={isAddSubjectOpen}
-                    onClose={() => setIsAddSubjectOpen(false)}
-                    onAdd={handleAddSubject}
-                />
-            </div>
         </PageTransition>
     );
 }

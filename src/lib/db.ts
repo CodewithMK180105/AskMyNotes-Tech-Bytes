@@ -108,6 +108,23 @@ export async function getSubjectsByUser(userId: string): Promise<(DBSubject & { 
     return (data || []) as (DBSubject & { subject_files: DBSubjectFile[] })[];
 }
 
+/**
+ * Delete a subject and all its related data.
+ */
+export async function deleteSubject(subjectId: string, userId: string): Promise<boolean> {
+    const { error } = await supabaseAdmin
+        .from("subjects")
+        .delete()
+        .eq("id", subjectId)
+        .eq("user_id", userId); // ensure the user actually owns this subject
+
+    if (error) {
+        console.error("[db] deleteSubject error:", error.message);
+        return false;
+    }
+    return true;
+}
+
 // ── Subject Files ─────────────────────────────────────────
 
 /**

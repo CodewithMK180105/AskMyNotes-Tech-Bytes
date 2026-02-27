@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Subject } from "@/lib/types";
+import { useSubjects } from "@/components/providers/SubjectsProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, MoreVertical, Trash2, Upload, ChevronDown } from "lucide-react";
+import { FileText, MoreVertical, Trash2, Upload, ChevronDown, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,6 +21,16 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { deleteSubject } = useSubjects();
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        const success = await deleteSubject(subject.id);
+        if (!success) {
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <motion.div
@@ -61,9 +72,17 @@ export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 rounded-xl">
-                            <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer gap-2 rounded-lg">
-                                <Trash2 className="h-4 w-4" />
-                                <span>Delete</span>
+                            <DropdownMenuItem
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="text-destructive focus:text-destructive cursor-pointer gap-2 rounded-lg"
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                )}
+                                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
