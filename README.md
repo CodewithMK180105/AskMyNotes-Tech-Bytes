@@ -1,4 +1,4 @@
-# AskMyNotes 🎓✨
+# 🎓 AskMyNotes
 
 **AskMyNotes** is your ultimate Study Copilot, designed to help students learn and interact with their study materials exactly how they need to. Say goodbye to hallucinations—AskMyNotes scopes its AI context strictly to the notes you upload!
 
@@ -48,29 +48,6 @@ AskMyNotes leverages a modern, event-driven infrastructure to process, embed, an
 - **Main DB & Vector Store**: **[Supabase](https://supabase.com/)** (PostgreSQL with `pgvector`).
 - **File Uploads**: **[ImageKit](https://imagekit.io/)** (Note handling & URLs).
 - **Authentication**: **Firebase** & **Custom JWT auth**.
-
----
-
-## 📂 Project Structure
-
-```text
-src/
-├── app/
-│   ├── (auth)/             # Login and Registration routes
-│   ├── api/                # Next.js API proxy routes (upload, generate, etc.)
-│   ├── dashboard/          # User Dashboard, History, Study modes
-│   └── page.tsx            # Beautiful Landing Page
-├── components/
-│   ├── layout/             # Topbar, Sidebar, ThemeToggle
-│   ├── shared/             # GradientButtons, Backgrounds, UploadZones
-│   └── ui/                 # Shadcn UI primitives (Cards, Inputs, Dialogs)
-└── lib/
-    ├── api.ts              # API layer bridging frontend & n8n
-    ├── db.ts               # Supabase DB operations bypassing RLS securely
-    ├── firebase.ts         # Firebase client config
-    ├── supabase.ts         # Supabase client setup
-    └── utils.ts            # Formatting Utilities
-```
 
 ---
 
