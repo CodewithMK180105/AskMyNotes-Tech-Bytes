@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AskMyNotes 🎓✨
 
-## Getting Started
+**AskMyNotes** is your ultimate Study Copilot, designed to help students learn and interact with their study materials exactly how they need to. Say goodbye to hallucinations—AskMyNotes scopes its AI context strictly to the notes you upload!
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+- **Subject-Scoped Context**  
+  Upload your PDFs and TXT files organized by subject. The AI strictly answers questions based solely on the documents you provided. No outside fluff, no hallucinations.
+
+- **Evidence-Backed Answers**  
+  Every AI response includes:
+  - **Confidence scores** (High/Medium/Low)
+  - **Exact citations**, pointing back to the specific uploaded file and section used.
+
+- **Interactive Study Mode & Quiz Generation**  
+  With a click of a button, AskMyNotes scans your documents and auto-generates:
+  - 5 Multiple-Choice Questions (MCQs)
+  - 3 Short-Answer Questions
+  - All questions come mapped with valid explanations and source references.
+
+- **Robust Hybrid Authentication**  
+  Secure access crafted for a seamless user experience:
+  - **Google Sign-In** (via Firebase Authentication)
+  - **Email/Password Authentication** (using a secure Custom JWT implementation)
+
+---
+
+## 🏗️ Architecture & Tech Stack
+
+AskMyNotes leverages a modern, event-driven infrastructure to process, embed, and query your notes seamlessly.
+
+### **Frontend**
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components**: [Radix UI](https://www.radix-ui.com/) & Shadcn UI
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+
+### **Backend & APIs**
+- **API Setup**: Next.js API Routes (`/api/*`) proxying secure connections.
+- **AI Orchestration**: **[n8n](https://n8n.io/)** (Webhooks for file upload & RAG orchestration).
+- **RAG Pipeline**:
+  - *Data Loaders & Recursion Text Splitters*
+  - *Embeddings via LLM (Mistral/OpenAI)*
+
+### **Database & Storage**
+- **Main DB & Vector Store**: **[Supabase](https://supabase.com/)** (PostgreSQL with `pgvector`).
+- **File Uploads**: **[ImageKit](https://imagekit.io/)** (Note handling & URLs).
+- **Authentication**: **Firebase** & **Custom JWT auth**.
+
+---
+
+## 📂 Project Structure
+
+```text
+src/
+├── app/
+│   ├── (auth)/             # Login and Registration routes
+│   ├── api/                # Next.js API proxy routes (upload, generate, etc.)
+│   ├── dashboard/          # User Dashboard, History, Study modes
+│   └── page.tsx            # Beautiful Landing Page
+├── components/
+│   ├── layout/             # Topbar, Sidebar, ThemeToggle
+│   ├── shared/             # GradientButtons, Backgrounds, UploadZones
+│   └── ui/                 # Shadcn UI primitives (Cards, Inputs, Dialogs)
+└── lib/
+    ├── api.ts              # API layer bridging frontend & n8n
+    ├── db.ts               # Supabase DB operations bypassing RLS securely
+    ├── firebase.ts         # Firebase client config
+    ├── supabase.ts         # Supabase client setup
+    └── utils.ts            # Formatting Utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+- Node.js (v18+)
+- Local or Cloud instances of Supabase, Firebase, and n8n
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd AskMyNotes/hackathon
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Set up Environment Variables**
+   Create a `.env.local` file in the root directory. You will need keys for:
+   - Supabase (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
+   - Firebase (`NEXT_PUBLIC_FIREBASE_API_KEY`, etc.)
+   - JWT Secret (`JWT_SECRET_KEY`)
+   - ImageKit
+   - n8n Webhook URLs
 
-## Deploy on Vercel
+4. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---

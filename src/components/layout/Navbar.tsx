@@ -46,7 +46,7 @@ export function Navbar() {
     };
 
     return (
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-6 z-40 sticky top-0">
+        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-6 z-40 sticky top-0 print:hidden">
             <div className="flex items-center gap-4">
                 {/* Mobile Menu Toggle */}
                 <div className="md:hidden">

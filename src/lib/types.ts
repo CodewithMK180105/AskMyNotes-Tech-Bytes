@@ -42,6 +42,7 @@ export interface MCQ {
     explanation: string;
     citation: Citation;
     evidence: string;
+    user_answer?: string | null;
     confidence: "High" | "Medium" | "Low";
 }
 
@@ -51,5 +52,6 @@ export interface ShortAnswer {
     model_answer: string;
     citation: Citation;
     evidence: string;
+    user_answer?: string | null;
     confidence: "High" | "Medium" | "Low";
 }

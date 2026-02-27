@@ -37,39 +37,68 @@ export default function HistoryPage() {
             if (data.success) {
                 // Map DB types to frontend types if needed
                 // The DB returns option_a, option_b etc.
-                // MCQCard expects options array
-                const mappedMcqs: MCQ[] = (data.mcqs || []).map((m: any) => ({
-                    id: m.id,
-                    question: m.question,
-                    options: [
-                        { label: "A", text: m.option_a },
-                        { label: "B", text: m.option_b },
-                        { label: "C", text: m.option_c },
-                        { label: "D", text: m.option_d },
-                    ],
-                    correct: m.correct_answer,
-                    explanation: m.explanation || "",
-                    confidence: m.confidence || "Medium",
-                    citation: {
-                        file: m.citation_file || "",
-                        page: 1,
-                        chunk_id: m.citation_section || ""
-                    },
-                    evidence: ""
-                }));
+                const mappedMcqs: MCQ[] = (data.mcqs || []).map((m: any) => {
+                    let expText = m.explanation;
+                    let evidenceText = m.explanation || "No explicit evidence provided.";
+                    let userAnswer = undefined;
+                    try {
+                        const parsed = JSON.parse(m.explanation);
+                        expText = parsed.text;
+                        evidenceText = parsed.evidence;
+                        userAnswer = parsed.user_answer || undefined;
+                    } catch (e) {
+                        // fallback
+                    }
 
-                const mappedSaqs: ShortAnswer[] = (data.shortAnswers || []).map((s: any) => ({
-                    id: s.id,
-                    question: s.question,
-                    model_answer: s.model_answer,
-                    confidence: s.confidence || "Medium",
-                    citation: {
-                        file: s.citation_file || "",
-                        page: 1,
-                        chunk_id: s.citation_section || ""
-                    },
-                    evidence: ""
-                }));
+                    return {
+                        id: m.id,
+                        question: m.question,
+                        options: [
+                            { label: "A", text: m.option_a },
+                            { label: "B", text: m.option_b },
+                            { label: "C", text: m.option_c },
+                            { label: "D", text: m.option_d },
+                        ].filter(o => o.text),
+                        correct: m.correct_answer || "A",
+                        explanation: expText,
+                        confidence: m.confidence || "Medium",
+                        citation: {
+                            file: m.citation_file || "",
+                            page: 1,
+                            chunk_id: m.citation_section || ""
+                        },
+                        evidence: evidenceText,
+                        user_answer: userAnswer
+                    };
+                });
+
+                const mappedSaqs: ShortAnswer[] = (data.shortAnswers || []).map((s: any) => {
+                    let ansText = s.model_answer;
+                    let evidenceText = s.model_answer?.slice(0, 200) || "No explicit evidence provided.";
+                    let userAnswer = undefined;
+                    try {
+                        const parsed = JSON.parse(s.model_answer);
+                        ansText = parsed.text;
+                        evidenceText = parsed.evidence;
+                        userAnswer = parsed.user_answer || undefined;
+                    } catch (e) {
+                        // fallback
+                    }
+
+                    return {
+                        id: s.id,
+                        question: s.question,
+                        model_answer: ansText,
+                        confidence: s.confidence || "Medium",
+                        citation: {
+                            file: s.citation_file || "",
+                            page: 1,
+                            chunk_id: s.citation_section || ""
+                        },
+                        evidence: evidenceText,
+                        user_answer: userAnswer
+                    };
+                });
 
                 setMcqs(mappedMcqs);
                 setShortAnswers(mappedSaqs);
@@ -145,6 +174,7 @@ export default function HistoryPage() {
                                         mcq={mcq}
                                         number={index + 1}
                                         onAnswer={() => { }} // Read-only
+                                        isResultView={true}
                                     />
                                 ))}
                             </div>

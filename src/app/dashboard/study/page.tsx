@@ -22,6 +22,7 @@ export default function StudyPage() {
     const [activeTab, setActiveTab] = useState<"mcq" | "short">("mcq");
     const [isStarted, setIsStarted] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
@@ -83,8 +84,23 @@ export default function StudyPage() {
     }, [subject, user]);
 
 
-    const handleSubmit = () => {
-        setIsSubmitted(true);
+    const handleSubmit = async () => {
+        setIsSaving(true);
+        try {
+            await fetch("/api/save-answers", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    mcqs: mcqs.map(m => ({ id: m.id, user_answer: m.user_answer, explanation: m.explanation, evidence: m.evidence })),
+                    shortAnswers: shortAnswers.map(s => ({ id: s.id, user_answer: s.user_answer, model_answer: s.model_answer, evidence: s.evidence }))
+                })
+            });
+        } catch (e) {
+            console.error("Failed to save answers", e);
+        } finally {
+            setIsSaving(false);
+            setIsSubmitted(true);
+        }
     };
 
     const handleRestart = () => {
@@ -97,45 +113,31 @@ export default function StudyPage() {
         setError(null);
     };
 
-    const handleDownload = async () => {
+    const handleDownload = () => {
         setIsDownloading(true);
-        try {
-            const element = document.getElementById("results-print-area");
-            if (!element) return;
-
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL("image/png");
-
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            let position = 0;
-            const pageHeight = pdf.internal.pageSize.getHeight();
-
-            while (position < pdfHeight) {
-                pdf.addImage(imgData, "PNG", 0, -position, pdfWidth, pdfHeight);
-                position += pageHeight;
-                if (position < pdfHeight) {
-                    pdf.addPage();
-                }
-            }
-
-            pdf.save(`${(subject?.name || "Study").replace(/\s+/g, "_")}_Study_Results.pdf`);
-        } catch (error) {
-            console.error("Failed to generate PDF", error);
-            alert("Failed to generate PDF. Please try again.");
-        } finally {
+        // Using native print since html2canvas doesn't support the raw Tailwind CSS oklab colors yet.
+        // The print layout is handled properly by @media print in globals.css
+        setTimeout(() => {
+            document.title = `${subject?.name || "Study_Results"}`;
+            window.print();
+            document.title = "AskMyNotes";
             setIsDownloading(false);
-        }
+        }, 100);
     };
 
-    const handleAnswer = (isCorrect: boolean) => {
+    const handleAnswer = (questionId: string, label: string, isCorrect: boolean) => {
+        setMcqs(prev => prev.map(m => m.id === questionId ? { ...m, user_answer: label } : m));
         if (isCorrect) setScore((prev) => prev + 1);
         setAnswersCount((prev) => prev + 1);
     };
 
-    const isComplete = mcqs.length > 0 && answersCount === mcqs.length;
+    const handleAnswerSAQ = (questionId: string, text: string) => {
+        setShortAnswers(prev => prev.map(s => s.id === questionId ? { ...s, user_answer: text } : s));
+    };
+
+    const isComplete = activeTab === "mcq"
+        ? mcqs.length > 0 && answersCount === mcqs.length
+        : shortAnswers.length > 0;
 
     return (
         <PageTransition className="h-full">
@@ -188,7 +190,7 @@ export default function StudyPage() {
             ) : (
                 <div className="max-w-4xl mx-auto space-y-8">
                     {/* Header Section - Only show when not started or after results are in */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/5">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/5 print:hidden">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-xs font-medium text-indigo-400 uppercase tracking-wider">
                                 <span className="bg-indigo-500/10 px-2 py-1 rounded">Study Mode</span>
@@ -208,7 +210,7 @@ export default function StudyPage() {
                     </div>
 
                     {isStarted && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glassmorphism-card p-4 rounded-2xl">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glassmorphism-card p-4 rounded-2xl print:hidden">
                             <StudyTabs activeTab={activeTab} onChange={setActiveTab} mcqCount={mcqs.length} shortCount={shortAnswers.length} />
 
                             <div className="flex items-center gap-3">
@@ -299,7 +301,8 @@ export default function StudyPage() {
                                                     key={mcq.id}
                                                     mcq={mcq}
                                                     number={index + 1}
-                                                    onAnswer={handleAnswer}
+                                                    onAnswer={(label, isCorrect) => handleAnswer(mcq.id, label, isCorrect)}
+                                                    isResultView={isSubmitted}
                                                 />
                                             ))}
                                         </div>
@@ -321,6 +324,7 @@ export default function StudyPage() {
                                                     sa={sa}
                                                     number={index + 1}
                                                     isResultView={isSubmitted}
+                                                    onAnswer={(text) => handleAnswerSAQ(sa.id, text)}
                                                 />
                                             ))}
                                         </div>
@@ -329,7 +333,7 @@ export default function StudyPage() {
                             </div>
 
                             {isSubmitted ? (
-                                <div className="flex justify-center gap-4 pt-8 border-t border-border">
+                                <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
                                     <GradientButton
                                         onClick={handleRestart}
                                         leftIcon={<RefreshCcw className="h-4 w-4" />}
@@ -347,7 +351,7 @@ export default function StudyPage() {
                                     </GradientButton>
                                 </div>
                             ) : (
-                                <div className="flex justify-center gap-4 pt-8 border-t border-border">
+                                <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
                                     <GradientButton
                                         onClick={handleRestart}
                                         leftIcon={<RefreshCcw className="h-4 w-4" />}
@@ -357,9 +361,10 @@ export default function StudyPage() {
                                     </GradientButton>
                                     <GradientButton
                                         onClick={handleSubmit}
-                                        disabled={!isComplete}
+                                        disabled={!isComplete || isSaving}
+                                        isLoading={isSaving}
                                     >
-                                        Submit Answers
+                                        {isSaving ? "Saving..." : "Submit Answers"}
                                     </GradientButton>
                                 </div>
                             )}

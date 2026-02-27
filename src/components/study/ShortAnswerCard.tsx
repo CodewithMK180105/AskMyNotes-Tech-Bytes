@@ -14,10 +14,11 @@ interface ShortAnswerCardProps {
     sa: ShortAnswer;
     number: number;
     isResultView?: boolean;
+    onAnswer?: (text: string) => void;
 }
 
-export function ShortAnswerCard({ sa, number, isResultView = false }: ShortAnswerCardProps) {
-    const [answer, setAnswer] = useState("");
+export function ShortAnswerCard({ sa, number, isResultView = false, onAnswer }: ShortAnswerCardProps) {
+    const [answer, setAnswer] = useState(sa.user_answer || "");
     const [showModelAnswer, setShowModelAnswer] = useState(isResultView);
 
     return (
@@ -44,6 +45,7 @@ export function ShortAnswerCard({ sa, number, isResultView = false }: ShortAnswe
                             placeholder={isResultView ? "No answer provided." : "Type your answer here to practice... (Optional)"}
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
+                            onBlur={() => onAnswer && onAnswer(answer)}
                             readOnly={isResultView}
                             className={cn(
                                 "relative min-h-[100px] resize-none bg-background/50 border-white/10 rounded-xl focus-visible:ring-indigo-500 custom-scrollbar",

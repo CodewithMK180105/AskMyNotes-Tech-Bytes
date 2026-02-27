@@ -51,7 +51,7 @@ export function Sidebar() {
             initial={{ width: 280 }}
             animate={{ width: isCollapsed ? 72 : 280 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="hidden md:flex h-screen bg-card border-r border-border flex-col shrink-0 sticky top-0 z-50"
+            className="hidden md:flex h-screen bg-card border-r border-border flex-col shrink-0 sticky top-0 z-50 print:hidden"
         >
             {/* Header */}
             <div className="h-16 flex items-center px-4 border-b border-border justify-between">

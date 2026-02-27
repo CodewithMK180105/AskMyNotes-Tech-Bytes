@@ -212,7 +212,7 @@ export async function deleteSubjectFile(fileId: string): Promise<DBSubjectFile |
 export async function saveMCQQuestions(
     subjectId: string,
     mcqs: Omit<DBMCQQuestion, "id" | "subject_id">[]
-): Promise<boolean> {
+): Promise<DBMCQQuestion[]> {
     // Delete previous MCQs for this subject
     await supabaseAdmin
         .from("mcq_questions")
@@ -221,15 +221,16 @@ export async function saveMCQQuestions(
 
     const rows = mcqs.map((m) => ({ ...m, subject_id: subjectId }));
 
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
         .from("mcq_questions")
-        .insert(rows);
+        .insert(rows)
+        .select();
 
     if (error) {
         console.error("[db] saveMCQQuestions error:", error.message);
-        return false;
+        return [];
     }
-    return true;
+    return (data || []) as DBMCQQuestion[];
 }
 
 /**
@@ -258,7 +259,7 @@ export async function getMCQsBySubject(subjectId: string): Promise<DBMCQQuestion
 export async function saveShortAnswerQuestions(
     subjectId: string,
     saqs: Omit<DBShortAnswerQuestion, "id" | "subject_id">[]
-): Promise<boolean> {
+): Promise<DBShortAnswerQuestion[]> {
     // Delete previous SAQs for this subject
     await supabaseAdmin
         .from("short_answer_questions")
@@ -267,15 +268,16 @@ export async function saveShortAnswerQuestions(
 
     const rows = saqs.map((s) => ({ ...s, subject_id: subjectId }));
 
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
         .from("short_answer_questions")
-        .insert(rows);
+        .insert(rows)
+        .select();
 
     if (error) {
         console.error("[db] saveShortAnswerQuestions error:", error.message);
-        return false;
+        return [];
     }
-    return true;
+    return (data || []) as DBShortAnswerQuestion[];
 }
 
 /**

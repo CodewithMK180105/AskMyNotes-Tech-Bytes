@@ -84,6 +84,11 @@ function extractMCQs(data: unknown) {
         const options = (mcq.options as Record<string, string>) || {};
         const citations = (mcq.citations as Array<Record<string, string>>) || [];
         const firstCit = citations[0] || {};
+
+        const explanationText = String(mcq.explanation || "");
+        const evidenceArray = mcq.supportingEvidenceSnippets || mcq.evidence || [];
+        const evidenceText = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || mcq.evidence || "");
+
         return {
             question: String(mcq.question || ""),
             option_a: String(options.A || mcq.option_a || ""),
@@ -91,7 +96,11 @@ function extractMCQs(data: unknown) {
             option_c: String(options.C || mcq.option_c || ""),
             option_d: String(options.D || mcq.option_d || ""),
             correct_answer: String(mcq.correctAnswer || mcq.correct_answer || mcq.answer || "A"),
-            explanation: String(mcq.explanation || ""),
+            explanation: JSON.stringify({
+                text: explanationText,
+                evidence: evidenceText,
+                user_answer: null
+            }),
             confidence: String(mcq.confidenceLevel || mcq.confidence || "Medium"),
             citation_file: firstCit.fileName || firstCit.file || null,
             citation_section: firstCit.section || firstCit.chunk_id || null,
@@ -123,9 +132,18 @@ function extractSAQs(data: unknown) {
         const saq = s as Record<string, unknown>;
         const citations = (saq.citations as Array<Record<string, string>>) || [];
         const firstCit = citations[0] || {};
+
+        const answerText = String(saq.modelAnswer || saq.model_answer || saq.answer || "");
+        const evidenceArray = saq.supportingEvidenceSnippets || saq.evidence || [];
+        const evidenceText = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || saq.evidence || "");
+
         return {
             question: String(saq.question || ""),
-            model_answer: String(saq.modelAnswer || saq.model_answer || saq.answer || ""),
+            model_answer: JSON.stringify({
+                text: answerText,
+                evidence: evidenceText,
+                user_answer: null
+            }),
             confidence: String(saq.confidenceLevel || saq.confidence || "Medium"),
             citation_file: firstCit.fileName || firstCit.file || null,
             citation_section: firstCit.section || firstCit.chunk_id || null,
@@ -170,6 +188,9 @@ export async function POST(request: NextRequest) {
         const { mcqs, shortAnswers, raw } = parseN8nResponse(rawData);
 
         // ── Step 3: Persist to Supabase (if subjectId provided) ─
+        let returnedMcqs: any[] = mcqs;
+        let returnedSaqs: any[] = shortAnswers;
+
         if (!subjectId) {
             console.warn("[generate-questions] No subjectId provided. Skipping Supabase save.");
         } else {
@@ -177,22 +198,26 @@ export async function POST(request: NextRequest) {
 
             if (mcqs.length > 0) {
                 const mcqSaved = await saveMCQQuestions(subjectId, mcqs);
-                if (!mcqSaved) console.error("[generate-questions] Failed to save MCQs to Supabase.");
-                else console.log(`[generate-questions] SUCCESSFULLY saved ${mcqs.length} MCQs to Postgres.`);
+                if (mcqSaved && mcqSaved.length > 0) {
+                    returnedMcqs = mcqSaved;
+                    console.log(`[generate-questions] SUCCESSFULLY saved ${mcqs.length} MCQs to Postgres.`);
+                } else console.error("[generate-questions] Failed to save MCQs to Supabase.");
             }
 
             if (shortAnswers.length > 0) {
                 const saqSaved = await saveShortAnswerQuestions(subjectId, shortAnswers);
-                if (!saqSaved) console.error("[generate-questions] Failed to save SAQs to Supabase.");
-                else console.log(`[generate-questions] SUCCESSFULLY saved ${shortAnswers.length} SAQs to Postgres.`);
+                if (saqSaved && saqSaved.length > 0) {
+                    returnedSaqs = saqSaved;
+                    console.log(`[generate-questions] SUCCESSFULLY saved ${shortAnswers.length} SAQs to Postgres.`);
+                } else console.error("[generate-questions] Failed to save SAQs to Supabase.");
             }
         }
 
         // ── Step 4: Return normalized data to frontend ─────────────
         return NextResponse.json({
             subject: (raw as any)?.subject || subjectId || "Subject",
-            mcqs: mcqs,
-            shortAnswers: shortAnswers,
+            mcqs: returnedMcqs,
+            shortAnswers: returnedSaqs,
             _db: {
                 subjectId: subjectId || null,
                 mcqsSaved: mcqs.length,

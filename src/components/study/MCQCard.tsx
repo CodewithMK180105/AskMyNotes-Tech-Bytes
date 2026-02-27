@@ -11,19 +11,20 @@ import { ConfidenceBadge } from "@/components/shared/ConfidenceBadge";
 interface MCQCardProps {
     mcq: MCQ;
     number: number;
-    onAnswer?: (isCorrect: boolean) => void;
+    onAnswer?: (label: string, isCorrect: boolean) => void;
+    isResultView?: boolean;
 }
 
-export function MCQCard({ mcq, number, onAnswer }: MCQCardProps) {
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const hasAnswered = selectedOption !== null;
-    const isCorrect = selectedOption === mcq.correct;
+export function MCQCard({ mcq, number, onAnswer, isResultView = false }: MCQCardProps) {
+    const [selectedOption, setSelectedOption] = useState<string | null>(mcq.user_answer || null);
+    const hasAnswered = selectedOption !== null || isResultView;
+    const isCorrect = selectedOption === mcq.correct || (isResultView && selectedOption === null);
 
     const handleSelect = (label: string) => {
         if (hasAnswered) return;
         setSelectedOption(label);
         if (onAnswer) {
-            onAnswer(label === mcq.correct);
+            onAnswer(label, label === mcq.correct);
         }
     };
 

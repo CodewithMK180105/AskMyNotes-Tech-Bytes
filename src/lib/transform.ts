@@ -33,33 +33,59 @@ export function transformWorkflowResponse(data: any): {
             { label: "D", text: String(m.option_d || "") },
         ].filter(o => o.text); // Remove empty options if AI hallucinated fewer than 4
 
+        let expText = m.explanation;
+        let evidenceText = m.explanation || "No explicit evidence provided.";
+        let userAnswer = undefined;
+        try {
+            const parsed = JSON.parse(m.explanation);
+            expText = parsed.text;
+            evidenceText = parsed.evidence;
+            userAnswer = parsed.user_answer || undefined;
+        } catch (e) {
+            // fallback for older db rows that are raw text
+        }
+
         return {
-            id: `mcq_live_${idx + 1}`,
+            id: m.id || `mcq_live_${idx + 1}`,
             question: m.question,
             options,
             correct: m.correct_answer || "A", // Ensure uppercase matching if AI hallucinates case
-            explanation: m.explanation,
+            explanation: expText,
             citation: m.citation_file ? {
                 file: m.citation_file,
                 page: parseInt(m.citation_section?.match(/\d+/)?.[0] || "0", 10),
                 chunk_id: m.citation_section || "",
             } : { file: "Notes", page: 0, chunk_id: "" },
-            evidence: m.explanation || "No explicit evidence provided.",
+            evidence: evidenceText,
+            user_answer: userAnswer,
             confidence: normalizeConfidence(m.confidence),
         };
     });
 
     const parsedShortAnswers: ShortAnswer[] = (data.shortAnswers || []).map((s: any, idx: number) => {
+        let ansText = s.model_answer;
+        let evidenceText = s.model_answer?.slice(0, 200) || "No explicit evidence provided.";
+        let userAnswer = undefined;
+        try {
+            const parsed = JSON.parse(s.model_answer);
+            ansText = parsed.text;
+            evidenceText = parsed.evidence;
+            userAnswer = parsed.user_answer || undefined;
+        } catch (e) {
+            // fallback
+        }
+
         return {
-            id: `sa_live_${idx + 1}`,
+            id: s.id || `sa_live_${idx + 1}`,
             question: s.question,
-            model_answer: s.model_answer,
+            model_answer: ansText,
             citation: s.citation_file ? {
                 file: s.citation_file,
                 page: parseInt(s.citation_section?.match(/\d+/)?.[0] || "0", 10),
                 chunk_id: s.citation_section || "",
             } : { file: "Notes", page: 0, chunk_id: "" },
-            evidence: s.model_answer?.slice(0, 200) || "No explicit evidence provided.",
+            evidence: evidenceText,
+            user_answer: userAnswer,
             confidence: normalizeConfidence(s.confidence),
         };
     });
