@@ -100,7 +100,7 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                     setCurrentFileName(currentFile);
                 },
                 {
-                    userId: user?.uid || "anonymous",
+                    userId: user?.id || "anonymous",
                     subjectColor,
                     subjectId,
                 }

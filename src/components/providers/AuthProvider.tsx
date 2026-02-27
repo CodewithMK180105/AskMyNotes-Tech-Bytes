@@ -1,25 +1,33 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useRouter, usePathname } from "next/navigation";
+
 import {
-    User,
+    User as FirebaseUser,
     onAuthStateChanged,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
     signOut as firebaseSignOut,
-    updateProfile,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useRouter, usePathname } from "next/navigation";
+
+export interface User {
+    id: string;
+    email: string;
+    displayName: string;
+    isFirebase?: boolean;
+}
 
 interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, displayName: string) => Promise<void>;
-    signInWithGoogle: () => Promise<void>;
+    signInWithGoogle: () => Promise<void>; // Mock or remove Google sign-in
     signOut: () => Promise<void>;
     error: string | null;
     clearError: () => void;
@@ -37,10 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
 
-    // Listen for auth state changes
+    // Check authentication (Firebase only now)
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
+        const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
+            if (fbUser) {
+                setUser({
+                    id: fbUser.uid,
+                    email: fbUser.email || "",
+                    displayName: fbUser.displayName || "",
+                    isFirebase: true
+                });
+            } else {
+                setUser(null);
+            }
             setLoading(false);
         });
 
@@ -67,10 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setError(null);
             await signInWithEmailAndPassword(auth, email, password);
             router.push("/dashboard");
-        } catch (err: unknown) {
-            const errorMessage = getFirebaseErrorMessage(err);
-            setError(errorMessage);
-            throw new Error(errorMessage);
+        } catch (err: any) {
+            setError(err.message || "Failed to sign in");
+            throw err;
         }
     };
 
@@ -78,13 +94,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             setError(null);
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            // Update the user's display name
-            await updateProfile(userCredential.user, { displayName });
+
+            // Set the display name for the new user
+            if (userCredential.user) {
+                await updateProfile(userCredential.user, {
+                    displayName: displayName
+                });
+            }
+
             router.push("/dashboard");
-        } catch (err: unknown) {
-            const errorMessage = getFirebaseErrorMessage(err);
-            setError(errorMessage);
-            throw new Error(errorMessage);
+        } catch (err: any) {
+            setError(err.message || "Failed to sign up");
+            throw err;
         }
     };
 
@@ -92,10 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             setError(null);
             await firebaseSignOut(auth);
+            setUser(null);
             router.push("/login");
-        } catch (err: unknown) {
-            const errorMessage = getFirebaseErrorMessage(err);
-            setError(errorMessage);
+        } catch (err: any) {
+            setError("Failed to sign out");
         }
     };
 
@@ -103,12 +124,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             setError(null);
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            const fbUser = result.user;
+            setUser({
+                id: fbUser.uid,
+                email: fbUser.email || "",
+                displayName: fbUser.displayName || "",
+                isFirebase: true
+            });
             router.push("/dashboard");
-        } catch (err: unknown) {
-            const errorMessage = getFirebaseErrorMessage(err);
-            setError(errorMessage);
-            throw new Error(errorMessage);
+        } catch (err: any) {
+            setError(err.message || "Google sign in failed");
+            throw err;
         }
     };
 
@@ -136,34 +163,4 @@ export function useAuth() {
         throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
-}
-
-// Helper: Convert Firebase error codes to user-friendly messages
-function getFirebaseErrorMessage(error: unknown): string {
-    if (error && typeof error === "object" && "code" in error) {
-        const code = (error as { code: string }).code;
-        switch (code) {
-            case "auth/email-already-in-use":
-                return "This email is already registered. Try signing in instead.";
-            case "auth/invalid-email":
-                return "Please enter a valid email address.";
-            case "auth/operation-not-allowed":
-                return "Email/password accounts are not enabled. Contact support.";
-            case "auth/weak-password":
-                return "Password is too weak. Use at least 6 characters.";
-            case "auth/user-disabled":
-                return "This account has been disabled. Contact support.";
-            case "auth/user-not-found":
-                return "No account found with this email. Please register first.";
-            case "auth/wrong-password":
-                return "Incorrect password. Please try again.";
-            case "auth/invalid-credential":
-                return "Invalid email or password. Please check your credentials.";
-            case "auth/too-many-requests":
-                return "Too many failed attempts. Please try again later.";
-            default:
-                return "An authentication error occurred. Please try again.";
-        }
-    }
-    return "An unexpected error occurred. Please try again.";
 }

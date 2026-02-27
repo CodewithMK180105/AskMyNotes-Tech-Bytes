@@ -37,7 +37,7 @@ export function SubjectsProvider({ children }: { children: React.ReactNode }) {
 
         const fetchSubjects = async () => {
             try {
-                const res = await fetch(`/api/subjects?userId=${user.uid}`);
+                const res = await fetch(`/api/subjects?userId=${user.id}`);
                 if (!res.ok) throw new Error("Failed to fetch subjects");
                 const data = await res.json();
                 if (data.success && data.subjects) {
@@ -66,7 +66,7 @@ export function SubjectsProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch("/api/subjects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user.uid, name, shortName, color })
+                body: JSON.stringify({ userId: user.id, name, shortName, color })
             });
             const data = await res.json();
             if (data.success && data.subject) {
@@ -99,7 +99,7 @@ export function SubjectsProvider({ children }: { children: React.ReactNode }) {
     const deleteSubject = useCallback(async (subjectId: string) => {
         if (!user) return false;
         try {
-            const res = await fetch(`/api/subjects/${subjectId}?userId=${user.uid}`, {
+            const res = await fetch(`/api/subjects/${subjectId}?userId=${user.id}`, {
                 method: "DELETE",
             });
             const data = await res.json();
