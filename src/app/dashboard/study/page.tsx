@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSubjects } from "@/components/providers/SubjectsProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { MCQ, ShortAnswer } from "@/lib/types";
@@ -15,7 +15,7 @@ import { ScoreSummary } from "@/components/study/ScoreSummary";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { RefreshCcw, PlayCircle, Download, Loader2, AlertCircle, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-import html2canvas from "html2canvas";
+import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 
 export default function StudyPage() {
@@ -25,6 +25,7 @@ export default function StudyPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingStep, setLoadingStep] = useState(0);
     const [loadingMessage, setLoadingMessage] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [score, setScore] = useState(0);
@@ -54,18 +55,22 @@ export default function StudyPage() {
         setMcqs([]);
         setShortAnswers([]);
         setIsLoading(true);
-        setLoadingMessage("Connecting to AI Brain and analyzing your notes...");
+        setLoadingStep(0);
+
+        // Artificial delay for UX and to show sequential steps clearly
+        const stepInterval = setInterval(() => {
+            setLoadingStep(prev => prev < 2 ? prev + 1 : prev);
+        }, 1200);
 
         try {
-            // Artificial delay to ensure n8n has time to process and for better UX as requested (min 10s)
-            const minWait = new Promise((resolve) => setTimeout(resolve, 10000));
+            const minWait = new Promise((resolve) => setTimeout(resolve, 3600));
 
             const [response] = await Promise.all([
                 generateQuestions(
                     subject.name,
                     mode,
                     user?.id || undefined,
-                    subject.id // Supabase subject UUID → saves MCQs/SAQs to DB
+                    subject.id
                 ),
                 minWait
             ]);
@@ -76,7 +81,9 @@ export default function StudyPage() {
             setShortAnswers(transformed.shortAnswers);
             setResponseSubject(transformed.subject);
             setIsLoading(false);
+            clearInterval(stepInterval);
         } catch (err) {
+            clearInterval(stepInterval);
             const message = err instanceof Error ? err.message : "Failed to generate questions. Please try again.";
             setError(message);
             setIsLoading(false);
@@ -113,16 +120,44 @@ export default function StudyPage() {
         setError(null);
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         setIsDownloading(true);
-        // Using native print since html2canvas doesn't support the raw Tailwind CSS oklab colors yet.
-        // The print layout is handled properly by @media print in globals.css
-        setTimeout(() => {
-            document.title = `${subject?.name || "Study_Results"}`;
-            window.print();
-            document.title = "AskMyNotes";
+        try {
+            const element = document.getElementById("results-print-area");
+            if (!element) return;
+            const imgData = await htmlToImage.toPng(element, {
+                pixelRatio: 2,
+                backgroundColor: document.documentElement.className.includes('dark') ? '#020817' : '#ffffff'
+            });
+
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            // Calculate the total physical height of the image in the PDF
+            const imgHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+
+            let heightLeft = imgHeight;
+            let position = 0; // vertical offset
+
+            // Add the first page
+            pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            // Loop to add subsequent pages if the content overflows
+            while (heightLeft > 0.5) { // Using a small margin of error (0.5mm)
+                pdf.addPage();
+                position -= pageHeight;
+                pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`${subject?.name || "AskMyNotes"}_Study_Results.pdf`);
+        } catch (error) {
+            console.error("Failed to generate PDF snapshot:", error);
+        } finally {
             setIsDownloading(false);
-        }, 100);
+        }
     };
 
     const handleAnswer = (questionId: string, label: string, isCorrect: boolean) => {
@@ -143,27 +178,72 @@ export default function StudyPage() {
         <PageTransition className="h-full">
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center text-center py-40 px-4 min-h-[70vh]">
-                    <div className="h-20 w-20 rounded-full bg-indigo-500/10 flex items-center justify-center mb-8 relative">
-                        <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 opacity-20 animate-pulse" />
+                    <div className="h-24 w-24 rounded-3xl bg-indigo-500/10 flex items-center justify-center mb-8 relative p-1 overflow-hidden group shadow-2xl">
+                        <motion.img
+                            src="/icon.svg"
+                            alt="Loading"
+                            className="h-16 w-16 relative z-10"
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                y: [0, -4, 0]
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                        />
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 opacity-20 animate-pulse" />
                     </div>
-                    <motion.h2
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-3xl font-heading font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60"
-                    >
-                        Generating Questions...
-                    </motion.h2>
-                    <p className="text-muted-foreground text-lg max-w-md mb-8 leading-relaxed">
-                        {loadingMessage}
-                    </p>
-                    <div className="flex items-center gap-3 text-sm text-indigo-400/80 bg-indigo-500/5 px-4 py-2 rounded-full border border-indigo-500/10">
-                        <BookOpen className="h-4 w-4" />
-                        <span className="font-medium">Searching notes</span>
-                        <span className="text-white/20">→</span>
-                        <span className="font-medium">AI Analysis</span>
-                        <span className="text-white/20">→</span>
-                        <span className="font-medium">Building Session</span>
+
+                    <div className="h-40 flex flex-col items-center justify-start overflow-hidden w-full max-w-lg mb-8">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={loadingStep}
+                                initial={{ opacity: 0, y: 40 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -40 }}
+                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                className="flex flex-col items-center"
+                            >
+                                <h2 className="text-4xl font-heading font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+                                    {loadingStep === 0 ? "Analyzing Notes..." :
+                                        loadingStep === 1 ? "Extracting Knowledge..." :
+                                            "Creating Your Session..."}
+                                </h2>
+                                <p className="text-muted-foreground text-lg leading-relaxed max-w-sm">
+                                    {loadingStep === 0 ? "Our AI is reading through your documents to find key concepts." :
+                                        loadingStep === 1 ? "Identifying important patterns and generating the best questions for you." :
+                                            "Finalizing your personalized practice set. Almost ready!"}
+                                </p>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs font-semibold text-foreground bg-secondary/30 px-6 py-3 rounded-full border border-border/50 backdrop-blur-sm shadow-inner group">
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                "h-2 w-2 rounded-full transition-all duration-500",
+                                loadingStep >= 0 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                            )} />
+                            <span className={cn("transition-colors duration-500", loadingStep >= 0 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Discovery</span>
+                        </div>
+                        <span className="text-muted-foreground/20">/</span>
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                "h-2 w-2 rounded-full transition-all duration-500",
+                                loadingStep >= 1 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                            )} />
+                            <span className={cn("transition-colors duration-500", loadingStep >= 1 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Synthesis</span>
+                        </div>
+                        <span className="text-muted-foreground/20">/</span>
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                "h-2 w-2 rounded-full transition-all duration-500",
+                                loadingStep >= 2 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                            )} />
+                            <span className={cn("transition-colors duration-500", loadingStep >= 2 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Ready</span>
+                        </div>
                     </div>
                 </div>
             ) : error ? (
@@ -178,7 +258,7 @@ export default function StudyPage() {
                     <div className="flex gap-3">
                         <GradientButton
                             onClick={handleRestart}
-                            className="bg-transparent border border-white/20 hover:bg-white/5 shadow-none"
+                            className="bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
                         >
                             Go Back
                         </GradientButton>
@@ -190,19 +270,19 @@ export default function StudyPage() {
             ) : (
                 <div className="max-w-4xl mx-auto space-y-8">
                     {/* Header Section - Only show when not started or after results are in */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/5 print:hidden">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border print:hidden">
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-xs font-medium text-indigo-400 uppercase tracking-wider">
+                            <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                                 <span className="bg-indigo-500/10 px-2 py-1 rounded">Study Mode</span>
-                                <span className="text-white/20">•</span>
-                                <span className="text-white/60">History</span>
+                                <span className="text-muted-foreground/30">•</span>
+                                <span className="text-muted-foreground">History</span>
                             </div>
                             <h1 className="text-4xl font-heading font-bold text-foreground tracking-tight">
                                 {isStarted ? "Study Session" : "Practice & Review"}
                             </h1>
                             <p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
                                 {isStarted
-                                    ? `Reviewing generated ${activeTab === "mcq" ? "MCQs" : "answers"} for "${subject?.name || "Subject"}".`
+                                    ? `Reviewing Generated ${activeTab === "mcq" ? "MCQs" : "answers"} for ${subject?.name || "Subject"}.`
                                     : "Test your knowledge with AI-generated questions based on your uploaded notes for this subject."
                                 }
                             </p>
@@ -227,7 +307,7 @@ export default function StudyPage() {
                                 )}
                                 <GradientButton
                                     onClick={handleRestart}
-                                    className="h-10 px-4 text-sm bg-white/5 border-white/10 hover:bg-white/10 shadow-none"
+                                    className="h-10 px-4 text-sm bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
                                     leftIcon={<RefreshCcw className="h-4 w-4" />}
                                 >
                                     New Session
@@ -241,33 +321,51 @@ export default function StudyPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
                             {/* 5 MCQ's Card */}
                             <button
-                                onClick={() => handleStart("mcq")}
+                                onClick={() => {
+                                    console.log("Starting MCQ session for:", subject?.name);
+                                    handleStart("mcq");
+                                }}
                                 disabled={!subject}
-                                className="group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-white/10 bg-card/50 hover:bg-card hover:border-indigo-500/50 transition-all duration-300 shadow-xl overflow-hidden"
+                                className={cn(
+                                    "group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-border bg-card/50 hover:bg-card hover:border-indigo-500/50 transition-all duration-300 shadow-xl overflow-hidden",
+                                    !subject && "opacity-50 cursor-not-allowed"
+                                )}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div className="h-24 w-24 rounded-full bg-indigo-500/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                                     <PlayCircle className="h-12 w-12 text-indigo-500" />
                                 </div>
-                                <h2 className="text-3xl font-bold mb-4">5 MCQ&apos;s</h2>
+                                <h2 className="text-3xl font-bold mb-4">5 MCQs</h2>
                                 <p className="text-muted-foreground text-base max-w-[240px] leading-relaxed">
-                                    Generate a set of 5 multiple choice questions from your notes.
+                                    {subject
+                                        ? `Generate 5 MCQs for ${subject.name}.`
+                                        : "Select a subject to generate MCQs."
+                                    }
                                 </p>
                             </button>
 
                             {/* Query Card */}
                             <button
-                                onClick={() => handleStart("short")}
+                                onClick={() => {
+                                    console.log("Starting Short Answer session for:", subject?.name);
+                                    handleStart("short");
+                                }}
                                 disabled={!subject}
-                                className="group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-white/10 bg-card/50 hover:bg-card hover:border-violet-500/50 transition-all duration-300 shadow-xl overflow-hidden"
+                                className={cn(
+                                    "group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-border bg-card/50 hover:bg-card hover:border-violet-500/50 transition-all duration-300 shadow-xl overflow-hidden",
+                                    !subject && "opacity-50 cursor-not-allowed"
+                                )}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div className="h-24 w-24 rounded-full bg-violet-500/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                                     <BookOpen className="h-12 w-12 text-violet-500" />
                                 </div>
-                                <h2 className="text-3xl font-bold mb-4">Query</h2>
+                                <h2 className="text-3xl font-bold mb-4">3 Queries</h2>
                                 <p className="text-muted-foreground text-base max-w-[240px] leading-relaxed">
-                                    Analyze your notes and provide a short-answer summary.
+                                    {subject
+                                        ? `Generate 3 questions for ${subject.name}.`
+                                        : "Select a subject to generate questions."
+                                    }
                                 </p>
                             </button>
                         </div>
@@ -277,10 +375,10 @@ export default function StudyPage() {
                                 <ScoreSummary score={score} total={mcqs.length} />
                             )}
 
-                            <div id="results-print-area" className={cn("pb-8", isSubmitted && "bg-card/50 p-8 rounded-2xl border border-white/5")}>
+                            <div id="results-print-area" className={cn("pb-8", isSubmitted && "bg-card/50 p-8 rounded-2xl border border-border")}>
                                 {isSubmitted && (
-                                    <div className="text-center pb-8 mb-8 border-b border-white/10">
-                                        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-cyan-500">
+                                    <div className="text-center pb-8 mb-8 border-b border-border">
+                                        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-indigo-500 dark:to-cyan-500">
                                             Study Results: {responseSubject || subject?.name}
                                         </h2>
                                         <p className="text-muted-foreground mt-2">Comprehensive review of your session.</p>
@@ -337,7 +435,7 @@ export default function StudyPage() {
                                     <GradientButton
                                         onClick={handleRestart}
                                         leftIcon={<RefreshCcw className="h-4 w-4" />}
-                                        className="bg-transparent border border-white/20 hover:bg-white/5 shadow-none"
+                                        className="bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
                                     >
                                         New Session
                                     </GradientButton>
@@ -355,7 +453,7 @@ export default function StudyPage() {
                                     <GradientButton
                                         onClick={handleRestart}
                                         leftIcon={<RefreshCcw className="h-4 w-4" />}
-                                        className="bg-transparent border border-white/20 hover:bg-white/5 shadow-none"
+                                        className="bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
                                     >
                                         Back
                                     </GradientButton>

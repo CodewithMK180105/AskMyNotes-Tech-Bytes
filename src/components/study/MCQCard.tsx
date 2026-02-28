@@ -5,8 +5,8 @@ import { MCQ } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CitationBadge } from "@/components/shared/CitationBadge";
 import { ConfidenceBadge } from "@/components/shared/ConfidenceBadge";
+
 
 interface MCQCardProps {
     mcq: MCQ;
@@ -18,7 +18,7 @@ interface MCQCardProps {
 export function MCQCard({ mcq, number, onAnswer, isResultView = false }: MCQCardProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(mcq.user_answer || null);
     const hasAnswered = selectedOption !== null || isResultView;
-    const isCorrect = selectedOption === mcq.correct || (isResultView && selectedOption === null);
+    const isCorrect = selectedOption === mcq.correct;
 
     const handleSelect = (label: string) => {
         if (hasAnswered) return;
@@ -50,7 +50,7 @@ export function MCQCard({ mcq, number, onAnswer, isResultView = false }: MCQCard
                         const isSelected = selectedOption === option.label;
                         const isCorrectOption = option.label === mcq.correct;
 
-                        let optionStateStyles = "border-white/10 hover:border-indigo-500/50 hover:bg-secondary/50 cursor-pointer";
+                        let optionStateStyles = "border-border hover:border-indigo-500/50 hover:bg-secondary/50 cursor-pointer";
 
                         if (hasAnswered) {
                             if (isCorrectOption) {
@@ -58,7 +58,7 @@ export function MCQCard({ mcq, number, onAnswer, isResultView = false }: MCQCard
                             } else if (isSelected && !isCorrectOption) {
                                 optionStateStyles = "border-red-500 bg-red-500/10 text-red-700 dark:text-red-400";
                             } else {
-                                optionStateStyles = "border-white/5 opacity-50 cursor-not-allowed";
+                                optionStateStyles = "border-border opacity-50 cursor-not-allowed";
                             }
                         }
 
@@ -103,36 +103,43 @@ export function MCQCard({ mcq, number, onAnswer, isResultView = false }: MCQCard
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden mt-6"
                         >
-                            <div className="p-4 rounded-xl bg-secondary/50 border border-white/5 relative overflow-hidden">
+                            <div className="p-4 rounded-xl bg-secondary/50 border border-border relative overflow-hidden">
                                 <div className={cn(
                                     "absolute left-0 top-0 bottom-0 w-1",
-                                    isCorrect ? "bg-emerald-500" : "bg-red-500"
+                                    (selectedOption === null) ? "bg-muted-foreground" : (isCorrect ? "bg-emerald-500" : "bg-red-500")
                                 )} />
 
-                                <div className="space-y-4">
-                                    <h4 className="flex items-center gap-2 font-semibold">
-                                        <span className={isCorrect ? "text-emerald-500" : "text-red-500"}>
-                                            {isCorrect ? "Correct!" : "Incorrect"}
-                                        </span>
+                                <div className="space-y-4 pt-1">
+                                    <h4 className="flex items-center gap-2 font-semibold text-sm">
+                                        {selectedOption === null ? (
+                                            <span className="text-muted-foreground">No Answer Provided</span>
+                                        ) : isCorrect ? (
+                                            <span className="text-emerald-600 dark:text-emerald-500">Correct!</span>
+                                        ) : (
+                                            <span className="text-red-600 dark:text-red-500">Incorrect</span>
+                                        )}
                                     </h4>
 
-                                    <p className="text-sm text-muted-foreground">
-                                        {mcq.explanation}
-                                    </p>
 
-                                    <div className="bg-background/40 rounded-lg p-3 border border-border">
+                                    <div className="bg-background/80 rounded-lg p-3 border border-border">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                                 Source Evidence
                                             </span>
                                             <ConfidenceBadge level={mcq.confidence} />
                                         </div>
-                                        <p className="text-sm italic text-foreground mb-3">
+                                        <p className="text-sm italic text-foreground">
                                             &quot;{mcq.evidence}&quot;
                                         </p>
-                                        <div className="flex justify-end">
-                                            <CitationBadge filename={mcq.citation.file} page={mcq.citation.page} />
-                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-border/50">
+                                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+                                            Explanation
+                                        </span>
+                                        <p className="text-sm text-foreground">
+                                            {mcq.explanation}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

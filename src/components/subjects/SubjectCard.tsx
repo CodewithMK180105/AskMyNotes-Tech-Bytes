@@ -130,7 +130,7 @@ export function SubjectCard({ subject, onUploadClick }: SubjectCardProps) {
                                                                 {file.name}
                                                             </p>
                                                             <p className="text-[10px] text-muted-foreground">
-                                                                {file.size} • {file.pages} pages
+                                                                {file.size} {file.pages > 0 ? `• ${file.pages} pages` : ''}
                                                             </p>
                                                         </div>
                                                     </div>

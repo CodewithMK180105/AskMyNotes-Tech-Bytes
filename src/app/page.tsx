@@ -46,22 +46,22 @@ export default function LandingPage() {
       <AnimatedMeshBackground />
 
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg">
+      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-8 pt-12 md:px-16 max-w-[1400px] mx-auto">
+        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/25 transition-all">
             <GraduationCap className="h-6 w-6 text-white" />
           </div>
-          <span className="font-heading font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
+          <span className="font-heading font-bold text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
             AskMyNotes
           </span>
-        </div>
+        </Link>
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <Link href="/login" className="hidden sm:inline-flex text-sm font-medium hover:text-indigo-500 transition-colors">
             Sign In
           </Link>
           <Link href="/register">
-            <GradientButton className="h-10 px-4 rounded-xl">
+            <GradientButton className="h-10 px-4 rounded-xl text-sm md:text-base">
               Get Started
             </GradientButton>
           </Link>

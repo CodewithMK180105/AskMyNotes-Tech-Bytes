@@ -14,22 +14,41 @@ export async function GET(request: NextRequest) {
         // Fetch subjects
         const subjects = await getSubjectsByUser(userId);
 
-        const subjectsWithFiles = subjects.map((subject) => {
+        const subjectsWithFiles = await Promise.all(subjects.map(async (subject) => {
+            const filesWithDetails = await Promise.all((subject.subject_files || []).map(async (file) => {
+                let sizeStr = "Unknown Size";
+                let pagesCount = 0; // Default placeholder since ImageKit doesn't easily expose pdf pages
+
+                if (file.imagekit_file_id) {
+                    try {
+                        const { default: imagekit } = await import("@/lib/imagekit");
+                        const ikDetails = await imagekit.files.get(file.imagekit_file_id);
+                        if (ikDetails && ikDetails.size) {
+                            sizeStr = `${(ikDetails.size / (1024 * 1024)).toFixed(2)} MB`;
+                        }
+                    } catch (e) {
+                        console.error(`[GET /api/subjects] error fetching file details for ${file.imagekit_file_id}:`, Object(e).message);
+                    }
+                }
+
+                return {
+                    id: file.id,
+                    name: file.file_name,
+                    size: sizeStr,
+                    pages: pagesCount,
+                    uploaded_at: file.uploaded_at,
+                };
+            }));
+
             return {
                 id: subject.id,
                 name: subject.name,
                 short_name: subject.short_name,
                 color: subject.color,
                 created_at: subject.created_at,
-                files: (subject.subject_files || []).map(file => ({
-                    id: file.id,
-                    name: file.file_name,
-                    size: "2 MB", // Default placeholders
-                    pages: 10,
-                    uploaded_at: file.uploaded_at,
-                }))
+                files: filesWithDetails
             };
-        });
+        }));
 
         return NextResponse.json({
             success: true,

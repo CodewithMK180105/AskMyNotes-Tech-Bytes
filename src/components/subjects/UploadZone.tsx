@@ -290,8 +290,13 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                         )}
 
                         {isUploading && (
-                            <div className="py-4 flex flex-col items-center justify-center space-y-3">
-                                <div className="h-8 w-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                            <div className="py-4 flex flex-col items-center justify-center space-y-4">
+                                <motion.img
+                                    src="/icon.svg"
+                                    className="h-10 w-10 overflow-hidden rounded-full"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                />
                                 <p className="text-sm text-muted-foreground animate-pulse">
                                     Uploading {currentFileName ? `"${currentFileName}"` : `${files.length} files`}...
                                 </p>

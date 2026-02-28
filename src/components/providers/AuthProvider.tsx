@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
     User as FirebaseUser,
@@ -144,10 +145,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             value={{ user, loading, signIn, signUp, signInWithGoogle, signOut, error, clearError }}
         >
             {loading ? (
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg animate-pulse" />
-                        <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+                <div className="min-h-screen flex flex-col items-center justify-center bg-background relative overflow-hidden">
+                    {/* Animated background elements for premium feel */}
+                    <div className="absolute top-1/4 -left-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
+                    <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] animate-pulse" />
+
+                    <div className="flex flex-col items-center gap-8 relative z-10">
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{
+                                duration: 0.5,
+                                ease: "easeOut"
+                            }}
+                            className="relative"
+                        >
+                            <motion.div
+                                className="absolute inset-0 bg-indigo-500/20 rounded-3xl blur-2xl"
+                                animate={{
+                                    scale: [1, 1.2, 1],
+                                    opacity: [0.5, 0.8, 0.5]
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            />
+                            <div className="h-24 w-24 rounded-3xl bg-card border border-border shadow-2xl flex items-center justify-center relative z-10 p-4">
+                                <motion.img
+                                    src="/icon.svg"
+                                    alt="AskMyNotes"
+                                    className="w-full h-full"
+                                />
+                            </div>
+                        </motion.div>
+
+                        <div className="flex flex-col items-center gap-2">
+                            <motion.h2
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="font-heading font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+                            >
+                                AskMyNotes
+                            </motion.h2>
+                        </div>
                     </div>
                 </div>
             ) : (

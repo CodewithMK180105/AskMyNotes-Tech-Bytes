@@ -82,12 +82,18 @@ function extractMCQs(data: unknown) {
     return mcqs.map((m: unknown) => {
         const mcq = m as Record<string, unknown>;
         const options = (mcq.options as Record<string, string>) || {};
-        const citations = (mcq.citations as Array<Record<string, string>>) || [];
-        const firstCit = citations[0] || {};
+
+        // Handle both older `citations` array and newer `citation` object structure
+        const citationObj = (mcq.citation as Record<string, string>) || undefined;
+        const citationsArray = (mcq.citations as Array<Record<string, string>>) || [];
+        const firstCit = citationObj || citationsArray[0] || {};
 
         const explanationText = String(mcq.explanation || "");
-        const evidenceArray = mcq.supportingEvidenceSnippets || mcq.evidence || [];
-        const evidenceText = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || mcq.evidence || "");
+
+        // Evidence can be under citation.evidence, supportingEvidenceSnippets, or evidence
+        const evidenceArray = mcq.supportingEvidenceSnippets || mcq.evidence;
+        const evidenceTextFallback = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || "");
+        const evidenceText = String(firstCit.evidence || evidenceTextFallback || explanationText);
 
         return {
             question: String(mcq.question || ""),
@@ -130,12 +136,18 @@ function extractSAQs(data: unknown) {
 
     return saqs.map((s: unknown) => {
         const saq = s as Record<string, unknown>;
-        const citations = (saq.citations as Array<Record<string, string>>) || [];
-        const firstCit = citations[0] || {};
+
+        // Handle both older `citations` array and newer `citation` object structure
+        const citationObj = (saq.citation as Record<string, string>) || undefined;
+        const citationsArray = (saq.citations as Array<Record<string, string>>) || [];
+        const firstCit = citationObj || citationsArray[0] || {};
 
         const answerText = String(saq.modelAnswer || saq.model_answer || saq.answer || "");
-        const evidenceArray = saq.supportingEvidenceSnippets || saq.evidence || [];
-        const evidenceText = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || saq.evidence || "");
+
+        // Evidence can be under citation.evidence, supportingEvidenceSnippets, or evidence
+        const evidenceArray = saq.supportingEvidenceSnippets || saq.evidence;
+        const evidenceTextFallback = Array.isArray(evidenceArray) ? evidenceArray.join("\n") : String(evidenceArray || "");
+        const evidenceText = String(firstCit.evidence || evidenceTextFallback || answerText.slice(0, 200));
 
         return {
             question: String(saq.question || ""),

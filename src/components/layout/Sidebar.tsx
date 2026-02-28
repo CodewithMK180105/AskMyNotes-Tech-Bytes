@@ -54,16 +54,18 @@ export function Sidebar() {
             className="hidden md:flex h-screen bg-card border-r border-border flex-col shrink-0 sticky top-0 z-50 print:hidden"
         >
             {/* Header */}
-            <div className="h-16 flex items-center px-4 border-b border-border justify-between">
+            <div className="h-16 flex items-center px-6 border-b border-border justify-between">
                 {!isCollapsed && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
-                    >
-                        AskMyNotes
-                    </motion.div>
+                    <Link href="/">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 cursor-pointer"
+                        >
+                            AskMyNotes
+                        </motion.div>
+                    </Link>
                 )}
                 <Button
                     variant="ghost"

@@ -53,9 +53,9 @@ export function transformWorkflowResponse(data: any): {
             explanation: expText,
             citation: m.citation_file ? {
                 file: m.citation_file,
-                page: parseInt(m.citation_section?.match(/\d+/)?.[0] || "0", 10),
+                page: m.citation_section || "0",
                 chunk_id: m.citation_section || "",
-            } : { file: "Notes", page: 0, chunk_id: "" },
+            } : { file: "Notes", page: "0", chunk_id: "" },
             evidence: evidenceText,
             user_answer: userAnswer,
             confidence: normalizeConfidence(m.confidence),
@@ -81,9 +81,9 @@ export function transformWorkflowResponse(data: any): {
             model_answer: ansText,
             citation: s.citation_file ? {
                 file: s.citation_file,
-                page: parseInt(s.citation_section?.match(/\d+/)?.[0] || "0", 10),
+                page: s.citation_section || "0",
                 chunk_id: s.citation_section || "",
-            } : { file: "Notes", page: 0, chunk_id: "" },
+            } : { file: "Notes", page: "0", chunk_id: "" },
             evidence: evidenceText,
             user_answer: userAnswer,
             confidence: normalizeConfidence(s.confidence),

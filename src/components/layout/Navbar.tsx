@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSubjects } from "@/components/providers/SubjectsProvider";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { motion } from "framer-motion";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -46,10 +48,10 @@ export function Navbar() {
     };
 
     return (
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-6 z-40 sticky top-0 print:hidden">
+        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-8 z-40 sticky top-0 print:hidden overflow-hidden">
             <div className="flex items-center gap-4">
                 {/* Mobile Menu Toggle */}
-                <div className="md:hidden">
+                <div className="md:hidden flex items-center gap-3">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -90,11 +92,19 @@ export function Navbar() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+
+                    <Link href="/">
+                        <span className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
+                            AskMyNotes
+                        </span>
+                    </Link>
                 </div>
 
-                <h1 className="text-xl font-heading font-semibold text-foreground hidden sm:block">
-                    {getPageTitle()}
-                </h1>
+                <Link href="/" className="hidden md:block">
+                    <h1 className="text-xl font-heading font-semibold text-foreground hover:opacity-80 transition-opacity">
+                        {getPageTitle()}
+                    </h1>
+                </Link>
 
                 {/* Subject Selector — only show when there are subjects */}
                 {subjects.length > 0 && (
@@ -145,8 +155,13 @@ export function Navbar() {
                             variant="ghost"
                             className="relative h-9 rounded-full pl-2 pr-4 bg-secondary/50 hover:bg-secondary gap-2 border border-border"
                         >
-                            <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                                {initials || <Loader2 className="h-3 w-3 animate-spin" />}
+                            <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0 overflow-hidden">
+                                {initials || (
+                                    <motion.img
+                                        src="/icon.svg"
+                                        className="h-full w-full p-0.5"
+                                    />
+                                )}
                             </div>
                             <span className="text-sm font-medium hidden sm:inline-block">
                                 {displayName.split(" ")[0]}

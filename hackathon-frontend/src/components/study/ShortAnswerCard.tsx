@@ -41,7 +41,7 @@ export function ShortAnswerCard({ sa, number, isResultView = false }: ShortAnswe
                     <div className="relative group">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
                         <Textarea
-                            placeholder={isResultView ? "No answer provided." : "Type your answer here to practice... (Optional)"}
+                            placeholder={isResultView ? "No answer provided." : "Type your answer here to practice..."}
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             readOnly={isResultView}
