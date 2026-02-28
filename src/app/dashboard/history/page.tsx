@@ -102,6 +102,14 @@ export default function HistoryPage() {
 
                 setMcqs(mappedMcqs);
                 setShortAnswers(mappedSaqs);
+
+                // If only SAQs exist, automatically switch to the "short" tab
+                // because the StudyTabs component hides the tab switcher when there's only 1 type of history
+                if (mappedMcqs.length === 0 && mappedSaqs.length > 0) {
+                    setActiveTab("short");
+                } else if (mappedMcqs.length > 0 && mappedSaqs.length === 0) {
+                    setActiveTab("mcq");
+                }
             } else {
                 setError(data.message || "Failed to load history");
             }

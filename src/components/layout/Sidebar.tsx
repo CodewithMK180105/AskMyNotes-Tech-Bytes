@@ -82,7 +82,9 @@ export function Sidebar() {
                 {/* Navigation */}
                 <div className="px-3 space-y-1">
                     {links.map((link) => {
-                        const isActive = pathname.startsWith(link.href);
+                        const isActive = link.href === "/dashboard"
+                            ? pathname === "/dashboard"
+                            : pathname.startsWith(link.href);
                         const isStudyMode = link.label === "Study Mode";
 
                         return (

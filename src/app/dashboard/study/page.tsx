@@ -25,7 +25,8 @@ export default function StudyPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [loadingStep, setLoadingStep] = useState(0);
+    const [loadingTextStep, setLoadingTextStep] = useState(0);
+    const [loadingDotStep, setLoadingDotStep] = useState(0);
     const [loadingMessage, setLoadingMessage] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [score, setScore] = useState(0);
@@ -55,12 +56,16 @@ export default function StudyPage() {
         setMcqs([]);
         setShortAnswers([]);
         setIsLoading(true);
-        setLoadingStep(0);
+        setLoadingTextStep(0);
+        setLoadingDotStep(0);
 
-        // Artificial delay for UX and to show sequential steps clearly
-        const stepInterval = setInterval(() => {
-            setLoadingStep(prev => prev < 2 ? prev + 1 : prev);
-        }, 1200);
+        const textInterval = setInterval(() => {
+            setLoadingTextStep(prev => (prev + 1) % 3);
+        }, 3000);
+
+        const dotInterval = setInterval(() => {
+            setLoadingDotStep(prev => (prev + 1) % 3);
+        }, 5000);
 
         try {
             const minWait = new Promise((resolve) => setTimeout(resolve, 3600));
@@ -81,9 +86,11 @@ export default function StudyPage() {
             setShortAnswers(transformed.shortAnswers);
             setResponseSubject(transformed.subject);
             setIsLoading(false);
-            clearInterval(stepInterval);
+            clearInterval(textInterval);
+            clearInterval(dotInterval);
         } catch (err) {
-            clearInterval(stepInterval);
+            clearInterval(textInterval);
+            clearInterval(dotInterval);
             const message = err instanceof Error ? err.message : "Failed to generate questions. Please try again.";
             setError(message);
             setIsLoading(false);
@@ -196,24 +203,24 @@ export default function StudyPage() {
                         <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 opacity-20 animate-pulse" />
                     </div>
 
-                    <div className="h-40 flex flex-col items-center justify-start overflow-hidden w-full max-w-lg mb-8">
+                    <div className="h-48 flex flex-col items-center justify-start overflow-hidden w-full max-w-lg mb-8 pt-4">
                         <AnimatePresence mode="wait">
                             <motion.div
-                                key={loadingStep}
+                                key={loadingTextStep}
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -40 }}
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
                                 className="flex flex-col items-center"
                             >
-                                <h2 className="text-4xl font-heading font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
-                                    {loadingStep === 0 ? "Analyzing Notes..." :
-                                        loadingStep === 1 ? "Extracting Knowledge..." :
+                                <h2 className="text-4xl font-heading font-bold mb-4 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+                                    {loadingTextStep === 0 ? "Analyzing Notes..." :
+                                        loadingTextStep === 1 ? "Extracting Knowledge..." :
                                             "Creating Your Session..."}
                                 </h2>
                                 <p className="text-muted-foreground text-lg leading-relaxed max-w-sm">
-                                    {loadingStep === 0 ? "Our AI is reading through your documents to find key concepts." :
-                                        loadingStep === 1 ? "Identifying important patterns and generating the best questions for you." :
+                                    {loadingTextStep === 0 ? "Our AI is reading through your documents to find key concepts." :
+                                        loadingTextStep === 1 ? "Identifying important patterns and generating the best questions for you." :
                                             "Finalizing your personalized practice set. Almost ready!"}
                                 </p>
                             </motion.div>
@@ -224,25 +231,25 @@ export default function StudyPage() {
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 0 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingDotStep === 0 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 0 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Discovery</span>
+                            <span className={cn("transition-colors duration-500", loadingDotStep === 0 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Discovery</span>
                         </div>
                         <span className="text-muted-foreground/20">/</span>
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 1 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingDotStep === 1 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 1 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Synthesis</span>
+                            <span className={cn("transition-colors duration-500", loadingDotStep === 1 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Synthesis</span>
                         </div>
                         <span className="text-muted-foreground/20">/</span>
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 2 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingDotStep === 2 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 2 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Ready</span>
+                            <span className={cn("transition-colors duration-500", loadingDotStep === 2 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Ready</span>
                         </div>
                     </div>
                 </div>
@@ -430,25 +437,7 @@ export default function StudyPage() {
                                 )}
                             </div>
 
-                            {isSubmitted ? (
-                                <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
-                                    <GradientButton
-                                        onClick={handleRestart}
-                                        leftIcon={<RefreshCcw className="h-4 w-4" />}
-                                        className="bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
-                                    >
-                                        New Session
-                                    </GradientButton>
-                                    <GradientButton
-                                        onClick={handleDownload}
-                                        isLoading={isDownloading}
-                                        disabled={isDownloading}
-                                        leftIcon={<Download className="h-4 w-4" />}
-                                    >
-                                        {isDownloading ? "Generating PDF..." : "Download Results as PDF"}
-                                    </GradientButton>
-                                </div>
-                            ) : (
+                            {!isSubmitted && (
                                 <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
                                     <GradientButton
                                         onClick={handleRestart}
