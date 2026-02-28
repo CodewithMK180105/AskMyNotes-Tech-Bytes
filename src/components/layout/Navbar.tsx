@@ -48,8 +48,8 @@ export function Navbar() {
     };
 
     return (
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-8 z-40 sticky top-0 print:hidden overflow-hidden">
-            <div className="flex items-center gap-4">
+        <header className="h-20 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-6 md:px-16 lg:px-24 z-40 sticky top-0 print:hidden overflow-hidden">
+            <div className="flex items-center gap-3 md:gap-6">
                 {/* Mobile Menu Toggle */}
                 <div className="md:hidden flex items-center gap-3">
                     <DropdownMenu>

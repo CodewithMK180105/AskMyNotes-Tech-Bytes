@@ -46,22 +46,22 @@ export default function LandingPage() {
       <AnimatedMeshBackground />
 
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-8 pt-12 md:px-16 max-w-[1400px] mx-auto">
-        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/25 transition-all">
-            <GraduationCap className="h-6 w-6 text-white" />
+      <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 pt-6 pb-4 md:px-12 lg:px-16 md:pt-8 md:pb-6 max-w-[1400px] mx-auto">
+        <Link href="/" className="flex items-center gap-2 md:gap-3 group transition-transform hover:scale-105 active:scale-95 shrink-0">
+          <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/25 transition-all">
+            <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-white" />
           </div>
           <span className="font-heading font-bold text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
             AskMyNotes
           </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link href="/login" className="hidden sm:inline-flex text-sm font-medium hover:text-indigo-500 transition-colors">
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
+          <div className="hidden sm:block"><ThemeToggle /></div>
+          <Link href="/login" className="hidden sm:inline-flex text-sm md:text-base font-medium hover:text-indigo-500 transition-colors">
             Sign In
           </Link>
           <Link href="/register">
-            <GradientButton className="h-10 px-4 rounded-xl text-sm md:text-base">
+            <GradientButton className="h-9 px-4 md:h-10 md:px-6 rounded-xl text-sm md:text-base whitespace-nowrap">
               Get Started
             </GradientButton>
           </Link>
@@ -69,12 +69,12 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pt-20 pb-12">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[85vh] px-4 pt-24 md:pt-32 pb-12">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="text-center max-w-4xl mx-auto"
+          className="text-center max-w-4xl mx-auto mt-8 lg:mt-12"
         >
 
 
