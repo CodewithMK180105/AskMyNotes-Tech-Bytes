@@ -1,0 +1,198 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { dummySubjects, dummyUser } from "@/lib/dummy-data";
+import {
+    Menu,
+    LayoutDashboard,
+    MessageSquare,
+    GraduationCap,
+    Plus,
+    LogOut,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./ThemeToggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+export function Sidebar() {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const pathname = usePathname();
+
+    const links = [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
+        { href: "/dashboard/study", label: "Study Mode", icon: GraduationCap },
+    ];
+
+    return (
+        <motion.aside
+            initial={{ width: 280 }}
+            animate={{ width: isCollapsed ? 72 : 280 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="h-screen bg-card border-r border-border flex flex-col z-20 shrink-0 sticky top-0"
+        >
+            {/* Header */}
+            <div className="h-16 flex items-center px-4 border-b border-border justify-between">
+                {!isCollapsed && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+                    >
+                        AskMyNotes
+                    </motion.div>
+                )}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={cn("ml-auto", isCollapsed && "mx-auto ml-0")}
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-6 scrollbar-hide">
+                {/* Navigation */}
+                <div className="px-3 space-y-1">
+                    {links.map((link) => {
+                        const isActive = pathname === link.href;
+                        return (
+                            <Tooltip key={link.href} delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        href={link.href}
+                                        className={cn(
+                                            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
+                                            isActive
+                                                ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-primary font-medium"
+                                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                        )}
+                                    >
+                                        <link.icon
+                                            className={cn("h-5 w-5 shrink-0", isActive && "text-primary")}
+                                        />
+                                        {!isCollapsed && <span>{link.label}</span>}
+                                    </Link>
+                                </TooltipTrigger>
+                                {isCollapsed && (
+                                    <TooltipContent side="right">{link.label}</TooltipContent>
+                                )}
+                            </Tooltip>
+                        );
+                    })}
+                </div>
+
+                {/* Subjects */}
+                <div className="px-3">
+                    {!isCollapsed && (
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-3">
+                            Your Subjects
+                        </h4>
+                    )}
+                    <div className="space-y-1">
+                        {dummySubjects.map((subject, idx) => {
+                            const isActive = idx === 0; // Simulate active state for the first one for now
+                            return (
+                                <Tooltip key={subject.id} delayDuration={0}>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            className={cn(
+                                                "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all text-left",
+                                                isActive
+                                                    ? "bg-secondary text-foreground border-l-2 border-primary"
+                                                    : "text-muted-foreground hover:bg-secondary/50 border-l-2 border-transparent"
+                                            )}
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "h-2 w-2 rounded-full shrink-0",
+                                                    `bg-${subject.color}-500`
+                                                )}
+                                                style={{ backgroundColor: `var(--${subject.color}-500)` }} // simplified for fallback
+                                            />
+                                            {!isCollapsed && <span className="truncate">{subject.name}</span>}
+                                        </button>
+                                    </TooltipTrigger>
+                                    {isCollapsed && (
+                                        <TooltipContent side="right">{subject.name}</TooltipContent>
+                                    )}
+                                </Tooltip>
+                            );
+                        })}
+                    </div>
+
+                    <Tooltip delayDuration={0}>
+                        <TooltipTrigger asChild>
+                            <div className="mt-4 px-3">
+                                <Button
+                                    variant="outline"
+                                    className={cn(
+                                        "w-full flex items-center justify-center gap-2 border-dashed border-2 rounded-xl text-muted-foreground hover:text-foreground",
+                                        isCollapsed ? "px-0" : ""
+                                    )}
+                                    disabled={dummySubjects.length >= 3}
+                                >
+                                    <Plus className="h-4 w-4 shrink-0" />
+                                    {!isCollapsed && <span>Add Subject</span>}
+                                </Button>
+                            </div>
+                        </TooltipTrigger>
+                        {dummySubjects.length >= 3 ? (
+                            <TooltipContent side={isCollapsed ? "right" : "bottom"}>
+                                Maximum 3 subjects reached
+                            </TooltipContent>
+                        ) : isCollapsed ? (
+                            <TooltipContent side="right">Add Subject</TooltipContent>
+                        ) : null}
+                    </Tooltip>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border flex flex-col gap-4">
+                <div
+                    className={cn(
+                        "flex items-center gap-3",
+                        isCollapsed && "justify-center"
+                    )}
+                >
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+                        {dummyUser.avatar_initials}
+                    </div>
+                    {!isCollapsed && (
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                                {dummyUser.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                                {dummyUser.email}
+                            </p>
+                        </div>
+                    )}
+                </div>
+                {!isCollapsed ? (
+                    <div className="flex items-center justify-between">
+                        <ThemeToggle />
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-2 items-center">
+                        <ThemeToggle />
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </motion.aside>
+    );
+}
