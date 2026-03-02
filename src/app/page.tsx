@@ -74,7 +74,7 @@ export default function LandingPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="text-center max-w-4xl mx-auto mt-12 md:mt-20"
+          className="text-center max-w-4xl mx-auto mt-24 md:mt-32"
         >
 
 

@@ -169,7 +169,7 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
 
     return (
         <Dialog open={isOpen} onOpenChange={() => { onClose(); setTimeout(resetState, 300); }}>
-            <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[500px] rounded-2xl glassmorphism bg-card/95 overflow-hidden">
+            <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[500px] max-h-[95vh] rounded-2xl glassmorphism bg-card/95 overflow-hidden flex flex-col px-4 sm:px-6">
                 <DialogHeader>
                     <DialogTitle className="font-heading text-xl">Upload Notes</DialogTitle>
                     <DialogDescription>
@@ -180,7 +180,7 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                 </DialogHeader>
 
                 {!isSuccess ? (
-                    <div className="space-y-6 py-4">
+                    <div className="space-y-5 py-2 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                         {/* File capacity indicator */}
                         <div className="flex items-center gap-2 px-1">
                             <div className="flex gap-1">
@@ -263,10 +263,10 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                                 <h4 className="text-sm font-medium text-foreground">
                                     Selected Files <span className="text-muted-foreground">({files.length}/{slotsRemaining} slots)</span>
                                 </h4>
-                                <div className="max-h-[140px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                <div className="max-h-[140px] overflow-y-auto overflow-x-hidden space-y-2 pr-1 custom-scrollbar">
                                     {files.map((file, idx) => (
-                                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl border border-white/5 overflow-hidden w-full">
-                                            <div className="flex items-center gap-3 overflow-hidden flex-1">
+                                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl border border-white/5 overflow-hidden w-full max-w-full">
+                                            <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
                                                 <File className="w-4 h-4 text-primary shrink-0" />
                                                 <div className="min-w-0 flex-1">
                                                     <span className="text-sm truncate font-medium block">{file.name}</span>
@@ -290,34 +290,34 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                         )}
 
                         {isUploading && (
-                            <div className="py-4 flex flex-col items-center justify-center space-y-4 w-full overflow-hidden">
+                            <div className="py-4 flex flex-col items-center justify-center space-y-4 w-full overflow-hidden max-w-full">
                                 <motion.img
                                     src="/icon.svg"
-                                    className="h-10 w-10 overflow-hidden rounded-full"
+                                    className="h-10 w-10 overflow-hidden rounded-full shrink-0"
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                 />
-                                <p className="text-sm text-muted-foreground animate-pulse text-center w-full px-4 truncate">
+                                <p className="text-sm text-muted-foreground animate-pulse text-center w-full px-2 truncate block max-w-[85vw] sm:max-w-[400px]">
                                     Uploading {currentFileName ? `"${currentFileName}"` : `${files.length} files`}...
                                 </p>
                             </div>
                         )}
 
                         {uploadErrors.length > 0 && (
-                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 max-w-full overflow-hidden">
                                 <div className="flex items-center gap-2 mb-2">
                                     <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-                                    <span className="text-sm font-medium text-red-500">Upload Errors</span>
+                                    <span className="text-sm font-medium text-red-500 truncate">Upload Errors</span>
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 overflow-auto max-h-24">
                                     {uploadErrors.map((error, idx) => (
-                                        <p key={idx} className="text-xs text-red-400">{error}</p>
+                                        <p key={idx} className="text-xs text-red-400 break-words">{error}</p>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        <div className="flex justify-end gap-3 pt-2">
+                        <div className="flex justify-end gap-2 pt-2 pb-2 shrink-0">
                             <Button variant="ghost" onClick={onClose} disabled={isUploading}>
                                 Cancel
                             </Button>
