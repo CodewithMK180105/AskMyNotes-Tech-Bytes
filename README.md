@@ -7,23 +7,16 @@
 ## 🚀 Features
 
 - **Subject-Scoped Context**  
-  Upload your PDFs and TXT files organized by subject. The AI strictly answers questions based solely on the documents you provided. No outside fluff, no hallucinations.
+  Organize your notes into dedicated Subjects (max 3 subjects). Upload your PDFs and TXT files directly to a subject, and the AI will only answer based on the material in that specific subject, completely avoiding hallucinations.
 
 - **Evidence-Backed Answers**  
-  Every AI response includes:
-  - **Confidence scores** (High/Medium/Low)
-  - **Exact citations**, pointing back to the specific uploaded file and section used.
+  Every answer comes with confidence scores and exact citations pointing you to the page and snippet in your notes.
 
-- **Interactive Study Mode & Quiz Generation**  
-  With a click of a button, AskMyNotes scans your documents and auto-generates:
-  - 5 Multiple-Choice Questions (MCQs)
-  - 3 Short-Answer Questions
-  - All questions come mapped with valid explanations and source references.
+- **Interactive Study Mode**  
+  Auto-generate Multiple Choice (MCQ) and Short Answer questions straight from your study materials to test your knowledge. Validates answers and stores your study history for review.
 
-- **Robust Hybrid Authentication**  
-  Secure access crafted for a seamless user experience:
-  - **Google Sign-In** (via Firebase Authentication)
-  - **Email/Password Authentication** (using a secure Custom JWT implementation)
+- **Robust Authentication & Secuity**  
+  Secure access crafted for a seamless user experience using Firebase Authentication and custom JWT.
 
 ---
 
@@ -32,37 +25,37 @@
 AskMyNotes leverages a modern, event-driven infrastructure to process, embed, and query your notes seamlessly.
 
 ### **Frontend**
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [Radix UI](https://www.radix-ui.com/) & Shadcn UI
+- **Framework**: [Next.js](https://nextjs.org/) (App Router, Turbopack)
+- **UI & Styling**: [Tailwind CSS v4](https://tailwindcss.com/), Radix UI, Shadcn UI
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: Lucide React
 
 ### **Backend & APIs**
-- **API Setup**: Next.js API Routes (`/api/*`) proxying secure connections.
+- **API Setup**: Next.js App Router API Routes (`/api/subjects`, `/api/upload-notes`, `/api/generate-questions`, `/api/save-answers`, etc.) proxying secure connections.
 - **AI Orchestration**: **[n8n](https://n8n.io/)** (Webhooks for file upload & RAG orchestration).
 - **RAG Pipeline**:
   - *Data Loaders & Recursion Text Splitters*
   - *Embeddings via LLM (Mistral/OpenAI)*
 
 ### **Database & Storage**
-- **Main DB & Vector Store**: **[Supabase](https://supabase.com/)** (PostgreSQL with `pgvector`).
+- **Main DB & Vector Store**: **[Supabase](https://supabase.com/)** (PostgreSQL with `pgvector` for efficient similarity search).
 - **File Uploads**: **[ImageKit](https://imagekit.io/)** (Note handling & URLs).
-- **Authentication**: **Firebase** & **Custom JWT auth**.
+- **Authentication**: **Firebase** & **Custom Node JWT auth**.
 
 ---
 
 ## 🛠️ Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- Local or Cloud instances of Supabase, Firebase, and n8n
+- Node.js (v20+)
+- Local or Cloud instances of Supabase, Firebase, ImageKit, and n8n
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd AskMyNotes/hackathon
+   cd AskMyNotes
    ```
 
 2. **Install dependencies**
@@ -72,17 +65,14 @@ AskMyNotes leverages a modern, event-driven infrastructure to process, embed, an
 
 3. **Set up Environment Variables**
    Create a `.env.local` file in the root directory. You will need keys for:
-   - Supabase (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
-   - Firebase (`NEXT_PUBLIC_FIREBASE_API_KEY`, etc.)
-   - JWT Secret (`JWT_SECRET_KEY`)
-   - ImageKit
-   - n8n Webhook URLs
+   - **Supabase** (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`)
+   - **Firebase** (`NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.)
+   - **ImageKit** (`IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`)
+   - **JWT Authentication** (`JWT_SECRET`)
 
 4. **Run the Development Server**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
----
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to launch the application.
