@@ -43,6 +43,7 @@ export default function StudyPage() {
     const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
     const effectiveSubjectId = selectedSubjectId || activeSubjectId || subjects[0]?.id || null;
     const subject = subjects.find((s) => s.id === effectiveSubjectId) || subjects[0] || null;
+    const isSubjectReady = subject && subject.files && subject.files.length > 0;
 
     const handleStart = useCallback(async (mode: "mcq" | "short" = "mcq") => {
         if (!subject) return;
@@ -59,8 +60,8 @@ export default function StudyPage() {
 
         // Artificial delay for UX and to show sequential steps clearly
         const stepInterval = setInterval(() => {
-            setLoadingStep(prev => prev < 2 ? prev + 1 : prev);
-        }, 1200);
+            setLoadingStep(prev => (prev + 1) % 3);
+        }, 4000);
 
         try {
             const minWait = new Promise((resolve) => setTimeout(resolve, 3600));
@@ -196,17 +197,17 @@ export default function StudyPage() {
                         <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 opacity-20 animate-pulse" />
                     </div>
 
-                    <div className="h-40 flex flex-col items-center justify-start overflow-hidden w-full max-w-lg mb-8">
-                        <AnimatePresence mode="wait">
+                    <div className="h-40 relative flex flex-col items-center justify-start overflow-hidden w-full max-w-lg mb-8">
+                        <AnimatePresence>
                             <motion.div
                                 key={loadingStep}
-                                initial={{ opacity: 0, y: 40 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -40 }}
-                                transition={{ duration: 0.5, ease: "easeInOut" }}
-                                className="flex flex-col items-center"
+                                initial={{ opacity: 0, y: 50, filter: "blur(4px)" }}
+                                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                                exit={{ opacity: 0, y: -50, filter: "blur(4px)" }}
+                                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                                className="absolute inset-0 flex flex-col items-center w-full text-center"
                             >
-                                <h2 className="text-4xl font-heading font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+                                <h2 className="text-4xl font-heading font-bold mb-4 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
                                     {loadingStep === 0 ? "Analyzing Notes..." :
                                         loadingStep === 1 ? "Extracting Knowledge..." :
                                             "Creating Your Session..."}
@@ -224,25 +225,25 @@ export default function StudyPage() {
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 0 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingStep === 0 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 0 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Discovery</span>
+                            <span className={cn("transition-colors duration-500", loadingStep === 0 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Discovery</span>
                         </div>
                         <span className="text-muted-foreground/20">/</span>
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 1 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingStep === 1 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 1 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Synthesis</span>
+                            <span className={cn("transition-colors duration-500", loadingStep === 1 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Synthesis</span>
                         </div>
                         <span className="text-muted-foreground/20">/</span>
                         <div className="flex items-center gap-2">
                             <div className={cn(
                                 "h-2 w-2 rounded-full transition-all duration-500",
-                                loadingStep >= 2 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
+                                loadingStep === 2 ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-muted-foreground/30"
                             )} />
-                            <span className={cn("transition-colors duration-500", loadingStep >= 2 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Ready</span>
+                            <span className={cn("transition-colors duration-500", loadingStep === 2 ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground/50")}>Ready</span>
                         </div>
                     </div>
                 </div>
@@ -325,10 +326,10 @@ export default function StudyPage() {
                                     console.log("Starting MCQ session for:", subject?.name);
                                     handleStart("mcq");
                                 }}
-                                disabled={!subject}
+                                disabled={!isSubjectReady}
                                 className={cn(
                                     "group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-border bg-card/50 hover:bg-card hover:border-indigo-500/50 transition-all duration-300 shadow-xl overflow-hidden",
-                                    !subject && "opacity-50 cursor-not-allowed"
+                                    !isSubjectReady && "opacity-50 cursor-not-allowed"
                                 )}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -337,9 +338,9 @@ export default function StudyPage() {
                                 </div>
                                 <h2 className="text-3xl font-bold mb-4">5 MCQs</h2>
                                 <p className="text-muted-foreground text-base max-w-[240px] leading-relaxed">
-                                    {subject
+                                    {isSubjectReady
                                         ? `Generate 5 MCQs for ${subject.name}.`
-                                        : "Select a subject to generate MCQs."
+                                        : subject ? `Upload files to ${subject.name} first.` : "Select a subject to generate MCQs."
                                     }
                                 </p>
                             </button>
@@ -350,10 +351,10 @@ export default function StudyPage() {
                                     console.log("Starting Short Answer session for:", subject?.name);
                                     handleStart("short");
                                 }}
-                                disabled={!subject}
+                                disabled={!isSubjectReady}
                                 className={cn(
                                     "group relative flex flex-col items-center justify-center text-center p-12 rounded-3xl border border-border bg-card/50 hover:bg-card hover:border-violet-500/50 transition-all duration-300 shadow-xl overflow-hidden",
-                                    !subject && "opacity-50 cursor-not-allowed"
+                                    !isSubjectReady && "opacity-50 cursor-not-allowed"
                                 )}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -362,9 +363,9 @@ export default function StudyPage() {
                                 </div>
                                 <h2 className="text-3xl font-bold mb-4">3 Queries</h2>
                                 <p className="text-muted-foreground text-base max-w-[240px] leading-relaxed">
-                                    {subject
+                                    {isSubjectReady
                                         ? `Generate 3 questions for ${subject.name}.`
-                                        : "Select a subject to generate questions."
+                                        : subject ? `Upload files to ${subject.name} first.` : "Select a subject to generate questions."
                                     }
                                 </p>
                             </button>
@@ -378,7 +379,7 @@ export default function StudyPage() {
                             <div id="results-print-area" className={cn("pb-8", isSubmitted && "bg-card/50 p-8 rounded-2xl border border-border")}>
                                 {isSubmitted && (
                                     <div className="text-center pb-8 mb-8 border-b border-border">
-                                        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-indigo-500 dark:to-cyan-500">
+                                        <h2 className="text-3xl font-bold pb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-indigo-500 dark:to-cyan-500">
                                             Study Results: {responseSubject || subject?.name}
                                         </h2>
                                         <p className="text-muted-foreground mt-2">Comprehensive review of your session.</p>
@@ -430,25 +431,7 @@ export default function StudyPage() {
                                 )}
                             </div>
 
-                            {isSubmitted ? (
-                                <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
-                                    <GradientButton
-                                        onClick={handleRestart}
-                                        leftIcon={<RefreshCcw className="h-4 w-4" />}
-                                        className="bg-secondary/50 border border-border hover:bg-secondary text-foreground shadow-none"
-                                    >
-                                        New Session
-                                    </GradientButton>
-                                    <GradientButton
-                                        onClick={handleDownload}
-                                        isLoading={isDownloading}
-                                        disabled={isDownloading}
-                                        leftIcon={<Download className="h-4 w-4" />}
-                                    >
-                                        {isDownloading ? "Generating PDF..." : "Download Results as PDF"}
-                                    </GradientButton>
-                                </div>
-                            ) : (
+                            {!isSubmitted && (
                                 <div className="flex justify-center gap-4 pt-8 border-t border-border print:hidden">
                                     <GradientButton
                                         onClick={handleRestart}

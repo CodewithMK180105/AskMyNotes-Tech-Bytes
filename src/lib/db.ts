@@ -213,11 +213,21 @@ export async function saveMCQQuestions(
     subjectId: string,
     mcqs: Omit<DBMCQQuestion, "id" | "subject_id">[]
 ): Promise<DBMCQQuestion[]> {
-    // Delete previous MCQs for this subject
-    await supabaseAdmin
+    // Keep the most recent 10 MCQs (to accommodate 5 new ones for a total of 15 / 3 sessions)
+    const { data: oldMCQs } = await supabaseAdmin
         .from("mcq_questions")
-        .delete()
-        .eq("subject_id", subjectId);
+        .select("id")
+        .eq("subject_id", subjectId)
+        .order("generated_at", { ascending: false })
+        .range(10, 1000);
+
+    if (oldMCQs && oldMCQs.length > 0) {
+        const oldIds = oldMCQs.map((q) => q.id);
+        await supabaseAdmin
+            .from("mcq_questions")
+            .delete()
+            .in("id", oldIds);
+    }
 
     const rows = mcqs.map((m) => ({ ...m, subject_id: subjectId }));
 
@@ -241,7 +251,8 @@ export async function getMCQsBySubject(subjectId: string): Promise<DBMCQQuestion
         .from("mcq_questions")
         .select("*")
         .eq("subject_id", subjectId)
-        .order("generated_at", { ascending: false });
+        .order("generated_at", { ascending: false })
+        .limit(15);
 
     if (error) {
         console.error("[db] getMCQsBySubject error:", error.message);
@@ -260,11 +271,21 @@ export async function saveShortAnswerQuestions(
     subjectId: string,
     saqs: Omit<DBShortAnswerQuestion, "id" | "subject_id">[]
 ): Promise<DBShortAnswerQuestion[]> {
-    // Delete previous SAQs for this subject
-    await supabaseAdmin
+    // Keep the most recent 6 SAQs (to accommodate 3 new ones for a total of 9 / 3 sessions)
+    const { data: oldSAQs } = await supabaseAdmin
         .from("short_answer_questions")
-        .delete()
-        .eq("subject_id", subjectId);
+        .select("id")
+        .eq("subject_id", subjectId)
+        .order("generated_at", { ascending: false })
+        .range(6, 1000);
+
+    if (oldSAQs && oldSAQs.length > 0) {
+        const oldIds = oldSAQs.map((s) => s.id);
+        await supabaseAdmin
+            .from("short_answer_questions")
+            .delete()
+            .in("id", oldIds);
+    }
 
     const rows = saqs.map((s) => ({ ...s, subject_id: subjectId }));
 
@@ -288,7 +309,8 @@ export async function getShortAnswersBySubject(subjectId: string): Promise<DBSho
         .from("short_answer_questions")
         .select("*")
         .eq("subject_id", subjectId)
-        .order("generated_at", { ascending: false });
+        .order("generated_at", { ascending: false })
+        .limit(9);
 
     if (error) {
         console.error("[db] getShortAnswersBySubject error:", error.message);

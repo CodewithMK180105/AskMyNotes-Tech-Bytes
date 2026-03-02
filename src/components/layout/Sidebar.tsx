@@ -56,16 +56,14 @@ export function Sidebar() {
             {/* Header */}
             <div className="h-16 flex items-center px-6 border-b border-border justify-between">
                 {!isCollapsed && (
-                    <Link href="/">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 cursor-pointer"
-                        >
-                            AskMyNotes
-                        </motion.div>
-                    </Link>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 select-none"
+                    >
+                        AskMyNotes
+                    </motion.div>
                 )}
                 <Button
                     variant="ghost"
@@ -82,7 +80,7 @@ export function Sidebar() {
                 {/* Navigation */}
                 <div className="px-3 space-y-1">
                     {links.map((link) => {
-                        const isActive = pathname.startsWith(link.href);
+                        const isActive = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
                         const isStudyMode = link.label === "Study Mode";
 
                         return (

@@ -169,7 +169,7 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
 
     return (
         <Dialog open={isOpen} onOpenChange={() => { onClose(); setTimeout(resetState, 300); }}>
-            <DialogContent className="sm:max-w-[500px] rounded-2xl glassmorphism bg-card/95">
+            <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[500px] rounded-2xl glassmorphism bg-card/95 overflow-hidden">
                 <DialogHeader>
                     <DialogTitle className="font-heading text-xl">Upload Notes</DialogTitle>
                     <DialogDescription>
@@ -265,10 +265,10 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                                 </h4>
                                 <div className="max-h-[140px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                     {files.map((file, idx) => (
-                                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl border border-white/5">
-                                            <div className="flex items-center gap-3 overflow-hidden">
+                                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl border border-white/5 overflow-hidden w-full">
+                                            <div className="flex items-center gap-3 overflow-hidden flex-1">
                                                 <File className="w-4 h-4 text-primary shrink-0" />
-                                                <div className="min-w-0">
+                                                <div className="min-w-0 flex-1">
                                                     <span className="text-sm truncate font-medium block">{file.name}</span>
                                                     <span className="text-[10px] text-muted-foreground">
                                                         {(file.size / (1024 * 1024)).toFixed(2)} MB
@@ -290,14 +290,14 @@ export function UploadZone({ isOpen, onClose, subjectId, subjectName, existingFi
                         )}
 
                         {isUploading && (
-                            <div className="py-4 flex flex-col items-center justify-center space-y-4">
+                            <div className="py-4 flex flex-col items-center justify-center space-y-4 w-full overflow-hidden">
                                 <motion.img
                                     src="/icon.svg"
                                     className="h-10 w-10 overflow-hidden rounded-full"
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                 />
-                                <p className="text-sm text-muted-foreground animate-pulse">
+                                <p className="text-sm text-muted-foreground animate-pulse text-center w-full px-4 truncate">
                                     Uploading {currentFileName ? `"${currentFileName}"` : `${files.length} files`}...
                                 </p>
                             </div>

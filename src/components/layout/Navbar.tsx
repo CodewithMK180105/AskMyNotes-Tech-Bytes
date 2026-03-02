@@ -48,7 +48,7 @@ export function Navbar() {
     };
 
     return (
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-8 z-40 sticky top-0 print:hidden overflow-hidden">
+        <header className="h-16 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-4 md:px-8 z-40 sticky top-0 print:hidden overflow-hidden">
             <div className="flex items-center gap-4">
                 {/* Mobile Menu Toggle */}
                 <div className="md:hidden flex items-center gap-3">
@@ -93,18 +93,16 @@ export function Navbar() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Link href="/">
-                        <span className="font-heading font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
-                            AskMyNotes
-                        </span>
-                    </Link>
+                    <span className="font-heading font-bold text-lg md:text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 select-none cursor-default">
+                        AskMyNotes
+                    </span>
                 </div>
 
-                <Link href="/" className="hidden md:block">
-                    <h1 className="text-xl font-heading font-semibold text-foreground hover:opacity-80 transition-opacity">
+                <div className="hidden md:block">
+                    <h1 className="text-xl font-heading font-semibold text-foreground select-none cursor-default">
                         {getPageTitle()}
                     </h1>
-                </Link>
+                </div>
 
                 {/* Subject Selector — only show when there are subjects */}
                 {subjects.length > 0 && (
