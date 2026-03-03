@@ -13,6 +13,7 @@ import {
     GraduationCap,
     Plus,
     LogOut,
+    Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,16 @@ export function Sidebar() {
 
     const links = [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/dashboard/history", label: "Your Chats", icon: MessageSquare },
+        { href: "/dashboard/history", label: "History", icon: MessageSquare },
         {
             href: "/dashboard/study",
             label: "Study Mode",
             icon: GraduationCap,
+        },
+        {
+            href: "/dashboard/chat",
+            label: "Chat",
+            icon: Bot,
         },
     ];
 

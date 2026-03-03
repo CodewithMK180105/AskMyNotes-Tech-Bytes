@@ -42,6 +42,8 @@ export function Navbar() {
                 return "Your Chats";
             case "/dashboard/study":
                 return "Study Mode";
+            case "/dashboard/chat":
+                return "Chat";
             default:
                 return "Dashboard";
         }
@@ -67,6 +69,9 @@ export function Navbar() {
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                 <a href="/dashboard/study" className="cursor-pointer">Study Mode</a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <a href="/dashboard/chat" className="cursor-pointer">Chat</a>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel>Subjects</DropdownMenuLabel>
@@ -99,9 +104,20 @@ export function Navbar() {
                 </div>
 
                 <div className="hidden md:block">
-                    <h1 className="text-xl font-heading font-semibold text-foreground select-none cursor-default">
-                        {getPageTitle()}
-                    </h1>
+                    {pathname === "/dashboard/chat" ? (
+                        <div className="flex flex-col select-none cursor-default">
+                            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-cyan-500">
+                                Chat Assistant
+                            </h1>
+                            <p className="text-[11px] text-muted-foreground leading-none mt-0.5">
+                                Ask any question and AI only answers from notes.
+                            </p>
+                        </div>
+                    ) : (
+                        <h1 className="text-xl font-heading font-semibold text-foreground select-none cursor-default">
+                            {getPageTitle()}
+                        </h1>
+                    )}
                 </div>
 
                 {/* Subject Selector — only show when there are subjects */}
@@ -142,9 +158,7 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-3">
-                <div className="hidden sm:block">
-                    <ThemeToggle />
-                </div>
+                <ThemeToggle />
 
                 {/* User Dropdown — now powered by Firebase Auth */}
                 <DropdownMenu>
