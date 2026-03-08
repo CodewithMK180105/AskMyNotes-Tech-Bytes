@@ -217,7 +217,7 @@ export default function ChatPage() {
                                         <Bot className="h-4 w-4" />
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <p className="text-sm font-semibold text-foreground/80">Assistant</p>
+                                        <p className="text-sm font-semibold text-foreground/80">Notes AI</p>
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <div className="flex gap-1">
                                                 <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]"></span>
@@ -245,7 +245,7 @@ export default function ChatPage() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder={hasFiles ? "Message Assistant..." : "Upload files to start chatting..."}
+                            placeholder={hasFiles ? "Message Notes AI..." : "Upload files to start chatting..."}
                             disabled={isInputDisabled} className="min-h-[56px] max-h-48 resize-none border-0 shadow-none focus-visible:ring-0 pl-4 py-4 pr-16 w-full bg-transparent scrollbar-hide text-base disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                             rows={1}
                         />
