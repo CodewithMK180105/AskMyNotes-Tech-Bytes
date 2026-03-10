@@ -7,6 +7,7 @@ type Props = {
   className?: string;
   delay?: number;
   duration?: number;
+  splitType?: "chars" | "words" | "lines";
   from?: any;
   to?: any;
 };
