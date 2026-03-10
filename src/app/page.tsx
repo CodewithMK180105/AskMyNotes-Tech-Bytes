@@ -8,23 +8,29 @@ import { GradientButton } from "@/components/shared/GradientButton";
 import { AnimatedMeshBackground } from "@/components/shared/AnimatedMeshBackground";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { GridScan } from '@/components/GridScan';
+import SplitText from '@/components/SplitText';
+import { HoverEffect } from "@/components/ui/card-hover-effect";
+import { cn } from "@/lib/utils";
 
 const features = [
   {
-    icon: FileText,
+    icon: <FileText className="h-6 w-6" />,
     title: "Subject-Scoped Context",
-    description: "Upload your PDFs and TXT files. The AI only answers based on the material in that specific subject, avoiding hallucinations.",
+    description:
+      "Upload your PDFs and TXT files. The AI only answers based on the material in that specific subject, avoiding hallucinations."
   },
   {
-    icon: Sparkles,
+    icon: <Sparkles className="h-6 w-6" />,
     title: "Evidence-Backed Answers",
-    description: "Every answer comes with confidence scores and exact citations pointing you to the page and snippet in your notes.",
+    description:
+      "Every answer comes with confidence scores and exact citations pointing you to the page and snippet in your notes."
   },
   {
-    icon: BrainCircuit,
+    icon: <BrainCircuit className="h-6 w-6" />,
     title: "Interactive Study Mode",
-    description: "Auto-generate Multiple Choice and Short Answer questions from your study materials to test your knowledge.",
-  },
+    description:
+      "Auto-generate Multiple Choice and Short Answer questions from your study materials to test your knowledge."
+  }
 ];
 
 export default function LandingPage() {
@@ -64,12 +70,28 @@ export default function LandingPage() {
             scanColor="#FF9FFC"
             scanOpacity={0.4}
             enablePost
-            bloomIntensity={0.6}
-            chromaticAberration={0.002}
+            bloomIntensity={0.3}
+            chromaticAberration={0.001}
             noiseIntensity={0.01}
           />
         </div>
       )}
+
+      {!isDark && (
+        <div
+          style={{ height: '100vh', zIndex: 0, pointerEvents: 'none' }}
+          className={cn(
+            "absolute inset-0",
+            "[background-size:80px_80px]",
+            "[background-image:linear-gradient(to_right,#e4e4e7_3px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_3px,transparent_1px)]",
+            "dark:[background-image:linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]",
+            "[mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]",
+            "[-webkit-mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]"
+          )}
+        />
+      )
+
+      }
 
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-8 pt-12 md:px-16 max-w-[1400px] mx-auto">
@@ -107,9 +129,15 @@ export default function LandingPage() {
             className="text-5xl md:text-7xl font-heading font-bold tracking-tight mb-6 leading-tight"
           >
             Your Ultimate{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500">
-              Study Copilot
-            </span>
+            <SplitText
+              text="Study Copilot"
+              className="inline bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+              delay={40}
+              duration={1}
+              splitType="chars"
+              from={{ opacity: 0, y: 40 }}
+              to={{ opacity: 1, y: 0 }}
+            />
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -133,29 +161,9 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Features Grid */}
-        <div className="w-full max-w-6xl mx-auto mt-32 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
-            return (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 + 0.2 }}
-                className="glassmorphism p-8 rounded-3xl relative overflow-hidden group border border-white/5"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 text-indigo-500 flex items-center justify-center mb-6 border border-indigo-500/20">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl font-heading font-semibold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
-            )
-          })}
+        <div className="container mx-auto px-4 mt-32">
+          <h2 className="text-3xl font-bold text-center">Key Features</h2>
+          <HoverEffect items={features} />
         </div>
       </main>
     </div>
