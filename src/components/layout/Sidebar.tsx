@@ -15,6 +15,7 @@ import {
     LogOut,
     Bot,
 } from "lucide-react";
+import { CiGift } from "react-icons/ci";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
@@ -49,6 +50,11 @@ export function Sidebar() {
             href: "/dashboard/chat",
             label: "Chat",
             icon: Bot,
+        },
+        {
+            href: "/dashboard/reedem",
+            label: "Reedem",
+            icon: CiGift,
         },
     ];
 
